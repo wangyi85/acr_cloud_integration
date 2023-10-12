@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 class StopRecBtn extends StatelessWidget {
-	StopRecBtn({super.key});
+	Function onStop;
+	StopRecBtn({super.key, required this.onStop});
 
 	@override
 	Widget build(BuildContext context) {
 		return InkWell(
-			onTap: () => {},
+			onTap: () => onStop(),
 			child: Container(
 				width: 260,
 				height: 260,
@@ -24,7 +25,7 @@ class StopRecBtn extends StatelessWidget {
 					),
 					alignment: Alignment.center,
 					child: const Text(
-						'START\nREC',
+						'STOP\nREC',
 						textAlign: TextAlign.center,
 						style: TextStyle(
 							fontFamily: 'Futura',

@@ -10,6 +10,8 @@ dependencies:
   acr_cloud_sdk: ^2.0.2
   flutter:
     sdk: flutter
+  flutter_redux: ^0.10.0
+  redux: ^5.0.0
 
 dev_dependencies:
   flutter_test:
