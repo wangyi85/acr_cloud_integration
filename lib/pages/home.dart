@@ -1,4 +1,5 @@
-import 'package:acr_cloud_sdk/acr_cloud_sdk.dart';
+import 'dart:io';
+
 import 'package:audio_monitor/models/app_state.dart';
 import 'package:audio_monitor/models/models.dart';
 import 'package:audio_monitor/pages/setting.dart';
@@ -10,7 +11,9 @@ import 'package:audio_monitor/widgets/stop_rec_back_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_monitor/utils/consts.dart';
+import 'package:flutter_acrcloud/flutter_acrcloud.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Home extends StatefulWidget {
 	Home({super.key});
@@ -20,12 +23,19 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-	final AcrCloudSdk arc = AcrCloudSdk();
-	@override
-	void initState() {
-		super.initState();
-		arc..init(host: host, accessKey: accessKey, accessSecret: accessSecret, setLog: false)..songModelStream.listen(searchSong);
+
+	void onInit(store) async {
+		await askPermissions();
+		ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 	}
+
+	Future<void> askPermissions() async {
+		var status = await Permission.microphone.status;
+		if ((status.isDenied || status.isPermanentlyDenied) && Platform.isAndroid) {
+			await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage].request();
+		}
+	}
+
 	void onNavigate(int index) {
 		switch(index) {
 			case 0:
@@ -43,26 +53,42 @@ class _HomeState extends State<Home> {
 
 	void startRecord() async {
 		print('startRecord');
+		final session = ACRCloud.startSession();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: true)));
-		bool started = await arc.start();
+		showDialog(
+			context: context,
+			barrierDismissible: false,
+			builder: (context) => AlertDialog(
+				title: Text('Listening...'),
+				content: StreamBuilder(
+					stream: session.volumeStream,
+					initialData: 0.0,
+					builder: (_, snapshot) =>
+						Text(snapshot.data.toString()),
+				),
+				actions: [
+					TextButton(
+					child: Text('Cancel'),
+					onPressed: () => stopRecord(session),
+					)
+				],
+			),
+		);
 	}
 
-	void searchSong(SongModel song) async {
-		print(song.toJson());
-		return;
-	}
-
-	void stopRecord() async {
-		await arc.stop();
+	void stopRecord(ACRCloudSession session) async {
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
+		session.cancel;
+		if (context.mounted) Navigator.pop(context);
+		final result = await session.result;
+		print(result!.metadata);
 	}
 
 	void stopRecordBackground() async {
-		await arc.stop();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
@@ -73,6 +99,7 @@ class _HomeState extends State<Home> {
 		return Scaffold(
 			bottomNavigationBar: BottomBar(onTap: onNavigate, currentIndex: 0),
 			body: StoreConnector<AppState, AppState>(
+				onInit: (store) => onInit(store),
 				converter: (store) => store.state,
 				builder: (context, state) => Container(
 					width: double.infinity,

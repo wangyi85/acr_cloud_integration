@@ -7,10 +7,12 @@ environment:
   sdk: '>=2.19.6 <3.0.0'
 
 dependencies:
-  acr_cloud_sdk: ^2.0.2
   flutter:
     sdk: flutter
+  flutter_acrcloud:
+    path: ./flutter_acrcloud/
   flutter_redux: ^0.10.0
+  permission_handler: ^11.0.1
   redux: ^5.0.0
 
 dev_dependencies:

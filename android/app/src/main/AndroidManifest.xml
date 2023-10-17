@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.audio_monitor">
-   <application
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <application
         android:label="audio_monitor"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
