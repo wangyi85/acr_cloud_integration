@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_monitor/models/app_state.dart';
@@ -23,6 +24,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+	String _result = '';
 
 	void onInit(store) async {
 		await askPermissions();
@@ -85,7 +87,9 @@ class _HomeState extends State<Home> {
 		session.cancel;
 		if (context.mounted) Navigator.pop(context);
 		final result = await session.result;
-		print(result!.metadata);
+		setState(() {
+			_result = result!.status.msg;
+		});
 	}
 
 	void stopRecordBackground() async {
@@ -146,7 +150,17 @@ class _HomeState extends State<Home> {
 								),
 							),
 							const SizedBox(height: 100,),
-							!state.recordStatus.isRunning ? StartRecBtn(onRecord: startRecord,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecord,) : StopRecBtn(onStop: stopRecordBackground,)
+							!state.recordStatus.isRunning ? StartRecBtn(onRecord: startRecord,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecord,) : StopRecBtn(onStop: stopRecordBackground,),
+							const SizedBox(height: 15,),
+							Text(
+								'Match Result: $_result',
+								style: const TextStyle(
+									fontFamily: 'Futura',
+									fontSize: 18,
+									color: Colors.black,
+									fontWeight: FontWeight.w400
+								),
+							)
 						],
 					),
 				),
