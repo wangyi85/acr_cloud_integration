@@ -15,6 +15,7 @@ import 'package:audio_monitor/utils/consts.dart';
 import 'package:flutter_acrcloud/flutter_acrcloud.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:workmanager/workmanager.dart';
 
 class Home extends StatefulWidget {
 	Home({super.key});
@@ -25,10 +26,11 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 	String _result = '';
+	dynamic _session;
 
 	void onInit(store) async {
 		await askPermissions();
-		ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+		// ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 	}
 
 	Future<void> askPermissions() async {
@@ -55,47 +57,48 @@ class _HomeState extends State<Home> {
 
 	void startRecord() async {
 		print('startRecord');
-		final session = ACRCloud.startSession();
+		setState(() {
+			_session = ACRCloud.startSession();
+		});
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: true)));
-		showDialog(
-			context: context,
-			barrierDismissible: false,
-			builder: (context) => AlertDialog(
-				title: Text('Listening...'),
-				content: StreamBuilder(
-					stream: session.volumeStream,
-					initialData: 0.0,
-					builder: (_, snapshot) =>
-						Text(snapshot.data.toString()),
-				),
-				actions: [
-					TextButton(
-					child: Text('Cancel'),
-					onPressed: () => stopRecord(session),
-					)
-				],
-			),
-		);
-	}
-
-	void stopRecord(ACRCloudSession session) async {
-		dynamic store;
-		if (context.mounted) store = StoreProvider.of<AppState>(context);
-		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
-		session.cancel;
-		if (context.mounted) Navigator.pop(context);
-		final result = await session.result;
+		final result = await _session.result;
 		setState(() {
 			_result = result!.status.msg;
 		});
+		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
 	}
 
-	void stopRecordBackground() async {
+	void stopRecord() async {
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
+		_session.cancel();
+		final result = await _session.result;
+		if (result != null) {
+			setState(() {
+				_result = result!.status.msg;
+			});
+		}
+	}
+
+	void stopRecordBackground() async {
+		Workmanager().cancelByUniqueName('ACR');
+		dynamic store;
+		if (context.mounted) store = StoreProvider.of<AppState>(context);
+		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
+	}
+
+	void runBackgroundService() async {
+		if (_session != null) _session.cancel();
+		Workmanager().registerPeriodicTask('ACR', 'ACR',
+			frequency: const Duration(minutes: 15),
+			existingWorkPolicy: ExistingWorkPolicy.replace,
+		);
+		dynamic store;
+		if (context.mounted) store = StoreProvider.of<AppState>(context);
+		store.dispatch(SetRecordStatus(RecordStatus(isBackground: true, isRunning: true)));
 	}
 
 	@override
@@ -105,63 +108,129 @@ class _HomeState extends State<Home> {
 			body: StoreConnector<AppState, AppState>(
 				onInit: (store) => onInit(store),
 				converter: (store) => store.state,
-				builder: (context, state) => Container(
-					width: double.infinity,
-					height: double.infinity,
-					padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-					color: Colors.white,
-					child: Column(
-						mainAxisAlignment: MainAxisAlignment.start,
-						mainAxisSize: MainAxisSize.max,
-						crossAxisAlignment: CrossAxisAlignment.center,
-						children: [
-							Container(
-								width: double.infinity,
-								child: Column(
-									mainAxisAlignment: MainAxisAlignment.center,
-									mainAxisSize: MainAxisSize.min,
-									crossAxisAlignment: CrossAxisAlignment.start,
-									children: const [
-										Padding(
-											padding: EdgeInsets.only(top: 30, bottom: 10),
-											child: Text(
-												'LOGO APP',
-												style: TextStyle(
-													fontFamily: 'Futura',
-													fontSize: 30,
-													fontWeight: FontWeight.w700,
-													color: Colors.black
-												),
+				builder: (context, state) => InkWell(
+					onDoubleTap: () => runBackgroundService(),
+					child: Container(
+						width: double.infinity,
+						height: double.infinity,
+						padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+						color: Colors.white,
+						child: Stack(
+							alignment: Alignment.center,
+							children: [
+								Column(
+									mainAxisAlignment: MainAxisAlignment.start,
+									mainAxisSize: MainAxisSize.max,
+									crossAxisAlignment: CrossAxisAlignment.center,
+									children: [
+										Container(
+											width: double.infinity,
+											child: Column(
+												mainAxisAlignment: MainAxisAlignment.center,
+												mainAxisSize: MainAxisSize.min,
+												crossAxisAlignment: CrossAxisAlignment.start,
+												children: const [
+													Padding(
+														padding: EdgeInsets.only(top: 30, bottom: 10),
+														child: Text(
+															'LOGO APP',
+															style: TextStyle(
+																fontFamily: 'Futura',
+																fontSize: 30,
+																fontWeight: FontWeight.w700,
+																color: Colors.black
+															),
+														),
+													),
+													Padding(
+														padding: EdgeInsets.only(bottom: 30),
+														child: Text(
+															'Double tap to record in background',
+															style: TextStyle(
+																fontFamily: 'Futura',
+																fontSize: 16,
+																fontWeight: FontWeight.w500,
+																color: Colors.black
+															),
+														),
+													)
+												],
 											),
 										),
-										Padding(
-											padding: EdgeInsets.only(bottom: 30),
-											child: Text(
-												'Double tap to record in background',
-												style: TextStyle(
-													fontFamily: 'Futura',
-													fontSize: 16,
-													fontWeight: FontWeight.w500,
-													color: Colors.black
+										const SizedBox(height: 100,),
+										!state.recordStatus.isRunning ? StartRecBtn(onRecord: startRecord,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecordBackground,) : StopRecBtn(onStop: stopRecord,),
+										const SizedBox(height: 15,),
+										(state.recordStatus.isRunning && !state.recordStatus.isBackground && _session != null) ? StreamBuilder(
+											stream: _session.volumeStream,
+											initialData: 0.0,
+											builder: (_, snapshot) =>
+												Text(
+													'Recorded Volume: ${snapshot.data.toString()}',
+													style: const TextStyle(
+														fontFamily: 'Futura',
+														fontSize: 18,
+														color: Colors.black,
+														fontWeight: FontWeight.w400
+													),
 												),
+										): Container(),
+										const SizedBox(height: 5,),
+										Text(
+											'Match Result: $_result',
+											style: const TextStyle(
+												fontFamily: 'Futura',
+												fontSize: 18,
+												color: Colors.black,
+												fontWeight: FontWeight.w400
 											),
 										)
 									],
 								),
-							),
-							const SizedBox(height: 100,),
-							!state.recordStatus.isRunning ? StartRecBtn(onRecord: startRecord,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecord,) : StopRecBtn(onStop: stopRecordBackground,),
-							const SizedBox(height: 15,),
-							Text(
-								'Match Result: $_result',
-								style: const TextStyle(
-									fontFamily: 'Futura',
-									fontSize: 18,
-									color: Colors.black,
-									fontWeight: FontWeight.w400
-								),
-							)
-						],
+								state.recordStatus.isRunning ? 
+									state.recordStatus.isBackground ?
+										Positioned(
+											top: 130,
+											child: Row(
+												mainAxisAlignment: MainAxisAlignment.center,
+												mainAxisSize: MainAxisSize.min,
+												children: const [
+													Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
+													SizedBox(width: 5,),
+													Text(
+														'FOREGROUND RECOGNITION',
+														style: TextStyle(
+															fontFamily: 'Futura',
+															fontSize: 18,
+															color: Colors.black,
+															fontWeight: FontWeight.w400
+														),
+													)
+												],
+											)
+										)
+									: Positioned(
+										top: 130,
+										child: Row(
+											mainAxisAlignment: MainAxisAlignment.center,
+											mainAxisSize: MainAxisSize.min,
+											children: const [
+												Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
+												SizedBox(width: 5,),
+												Text(
+													'FOREGROUND RECOGNITION',
+													style: TextStyle(
+														fontFamily: 'Futura',
+														fontSize: 18,
+														color: Colors.black,
+														fontWeight: FontWeight.w400
+													),
+												)
+											],
+										)
+									)
+								: Container()
+							],
+						),
 					),
 				),
 			),

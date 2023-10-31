@@ -14,6 +14,7 @@ dependencies:
   flutter_redux: ^0.10.0
   permission_handler: ^11.0.1
   redux: ^5.0.0
+  workmanager: ^0.5.1
 
 dev_dependencies:
   flutter_test:
