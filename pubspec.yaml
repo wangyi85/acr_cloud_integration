@@ -7,10 +7,12 @@ environment:
   sdk: '>=2.19.6 <3.0.0'
 
 dependencies:
+  background_fetch: ^1.2.1
   flutter:
     sdk: flutter
   flutter_acrcloud:
     path: ./flutter_acrcloud/
+  flutter_foreground_task: ^6.1.2
   flutter_redux: ^0.10.0
   permission_handler: ^11.0.1
   redux: ^5.0.0

@@ -97,7 +97,6 @@ class ACRCloud {
 
     _session?.dispose();
     _session = ACRCloudSession._();
-    print(_channel);
     _channel.invokeMethod('listen');
     return _session!;
   }

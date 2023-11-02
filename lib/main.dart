@@ -1,15 +1,17 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:audio_monitor/models/app_state.dart';
 import 'package:audio_monitor/models/models.dart';
 import 'package:audio_monitor/pages/splash.dart';
 import 'package:audio_monitor/store/reducers/app_reducer.dart';
+import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrcloud/flutter_acrcloud.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:redux/redux.dart';
-import 'package:workmanager/workmanager.dart';
 import 'package:audio_monitor/utils/consts.dart';
 
 void main() {
@@ -17,25 +19,43 @@ void main() {
 		recordStatus: RecordStatus(isBackground: false, isRunning: false)
 	));
 	WidgetsFlutterBinding.ensureInitialized();
-	Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+	// Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+	// BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
   	runApp(StoreProvider(store: store, child: const MainApp()));
 }
 
-void callbackDispatcher() {
-	Workmanager().executeTask((taskName, inputData) async {
-		if (taskName == 'ACR') {
-			print('ACR Background task started');
-			if (!ACRCloud.isSetUp) await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
-			final session = ACRCloud.startSession();
-			// print(session.volumeStream);
-			// Future.delayed(const Duration(seconds: 10), () async {
-			// 	session.cancel();
-			// 	final result = await session.result;
-			// 	print(result!.status.msg);
-			// });
-		}
-		return Future.value(true);
+@pragma('vm:entry-point')
+void backgroundFetchHeadlessTask(HeadlessTask task) async {
+	String taskId = task.taskId;
+	bool isTimeout = task.timeout;
+	if (isTimeout) {
+		// This task has exceeded its allowed running-time.  
+		// You must stop what you're doing and immediately .finish(taskId)
+		print("[BackgroundFetch] Headless task timed-out: $taskId");
+		BackgroundFetch.finish(taskId);
+		return;
+	}  
+	print('[BackgroundFetch] Headless event received.');
+	// Do your work here...
+	await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+	final session = ACRCloud.startSession();
+	print(session.volumeStream);
+	Future.delayed(const Duration(seconds: 10), () async {
+		session.cancel();
+		final result = await session.result;
+		print(result!.status.msg);
 	});
+	if (taskId == 'acr_background') {
+		BackgroundFetch.scheduleTask(TaskConfig(
+			taskId: "acr_background",
+			delay: 5000,
+			periodic: true,
+			forceAlarmManager: true,
+			stopOnTerminate: false,
+			enableHeadless: true
+		));
+	}
+	BackgroundFetch.finish(taskId);
 }
 
 Future<void> askPermissions() async {
