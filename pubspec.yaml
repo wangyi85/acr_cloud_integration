@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   background_fetch: ^1.2.1
+  device_imei: ^0.0.4+1
+  device_uuid: ^0.0.4
   flutter:
     sdk: flutter
   flutter_acrcloud:

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:audio_monitor/models/app_state.dart';
 import 'package:audio_monitor/models/models.dart';
@@ -8,20 +7,19 @@ import 'package:audio_monitor/store/reducers/app_reducer.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrcloud/flutter_acrcloud.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:redux/redux.dart';
 import 'package:audio_monitor/utils/consts.dart';
 
 void main() {
 	final store = Store<AppState>(appReducer, initialState: AppState(
-		recordStatus: RecordStatus(isBackground: false, isRunning: false)
+		recordStatus: RecordStatus(isBackground: false, isRunning: false),
+		result: Result(''),
+		deviceInfo: DeviceInfo(uuid: '', imei: '', model: '', brand: '')
 	));
 	WidgetsFlutterBinding.ensureInitialized();
-	// Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 	// BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
-  	runApp(StoreProvider(store: store, child: const MainApp()));
+  	runApp(RestartWidget(child: StoreProvider(store: store, child: const MainApp())));
 }
 
 @pragma('vm:entry-point')
@@ -58,13 +56,6 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
 	BackgroundFetch.finish(taskId);
 }
 
-Future<void> askPermissions() async {
-	var status = await Permission.microphone.status;
-	if ((status.isDenied || status.isPermanentlyDenied) && Platform.isAndroid) {
-		await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage].request();
-	}
-}
-
 class MainApp extends StatelessWidget {
 	const MainApp({super.key});
 
@@ -76,6 +67,37 @@ class MainApp extends StatelessWidget {
 				primaryColor: Colors.white
 			),
 			debugShowCheckedModeBanner: false,
+		);
+	}
+}
+
+class RestartWidget extends StatefulWidget {
+	final Widget child;
+
+  	RestartWidget({required this.child});
+
+	static void restartApp(BuildContext context) {
+		context.findAncestorStateOfType<_RestartWidgetState>()!.restartApp();
+	}
+
+	@override
+	_RestartWidgetState createState() => _RestartWidgetState();
+}
+
+class _RestartWidgetState extends State<RestartWidget> {
+	Key key = UniqueKey();
+
+	void restartApp() {
+		setState(() {
+			key = UniqueKey();
+		});
+	}
+
+	@override
+	Widget build(BuildContext context) {
+		return KeyedSubtree(
+			key: key,
+			child: widget.child,
 		);
 	}
 }

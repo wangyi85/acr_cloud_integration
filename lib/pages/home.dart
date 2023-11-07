@@ -7,6 +7,7 @@ import 'package:audio_monitor/models/models.dart';
 import 'package:audio_monitor/pages/setting.dart';
 import 'package:audio_monitor/pages/source.dart';
 import 'package:audio_monitor/store/actions/record_status_action.dart';
+import 'package:audio_monitor/store/actions/result_action.dart';
 import 'package:audio_monitor/widgets/bottombar.dart';
 import 'package:audio_monitor/widgets/start_rec_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_back_btn.dart';
@@ -34,7 +35,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 	ReceivePort? _receivePort;
-	String _result = '';
 	dynamic _session;
 
 	@override
@@ -44,8 +44,8 @@ class _HomeState extends State<Home> {
 	}
 
 	void onInit(store) async {
-		// await askPermissions();
-		// ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+		await askPermissions();
+		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		// await initPlatformState();
 	}
 
@@ -138,8 +138,8 @@ class _HomeState extends State<Home> {
 					name: 'launcher',
 				),
 				buttons: [
-					const NotificationButton(id: 'sendButton', text: 'Send'),
-					const NotificationButton(id: 'testButton', text: 'Test'),
+					// const NotificationButton(id: 'sendButton', text: 'Send'),
+					// const NotificationButton(id: 'testButton', text: 'Test'),
 				],
 			),
 			iosNotificationOptions: const IOSNotificationOptions(
@@ -147,7 +147,7 @@ class _HomeState extends State<Home> {
 				playSound: false,
 			),
 			foregroundTaskOptions: const ForegroundTaskOptions(
-				interval: 5000,
+				interval: 15000,
 				isOnceEvent: false,
 				autoRunOnBoot: true,
 				allowWakeLock: true,
@@ -243,9 +243,7 @@ class _HomeState extends State<Home> {
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: true)));
 		final result = await _session.result;
-		setState(() {
-			_result = result!.status.msg;
-		});
+		setResult(result);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
 	}
 
@@ -255,10 +253,23 @@ class _HomeState extends State<Home> {
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
 		_session.cancel();
 		final result = await _session.result;
-		if (result != null) {
-			setState(() {
-				_result = result!.status.msg;
-			});
+		setResult(result);
+	}
+
+	void setResult(ACRCloudResponse? result) {
+		dynamic store;
+		if (context.mounted) store = StoreProvider.of<AppState>(context);
+		if (result == null) {
+			store.dispatch(SetResult('NULL'));
+		} else {
+			if (result.metadata!.customFiles != null) {
+				dynamic customFile = result.metadata!.customFiles.first;
+				store.dispatch(SetResult(customFile!.title));
+			}
+			else if (result.metadata!.liveChannels != null) {
+				dynamic liveChannel = result.metadata!.liveChannels.first;
+				store.dispatch(SetResult(liveChannel!.title));
+			}
 		}
 	}
 
@@ -365,7 +376,7 @@ class _HomeState extends State<Home> {
 											): Container(),
 											const SizedBox(height: 5,),
 											Text(
-												'Match Result: $_result',
+												'Match Result: ${state.result.result}',
 												style: const TextStyle(
 													fontFamily: 'Futura',
 													fontSize: 18,
@@ -431,19 +442,39 @@ class _HomeState extends State<Home> {
 class MyTaskHandler extends TaskHandler {
 	SendPort? _sendPort;
 	int _eventCount = 0;
+	dynamic _session;
+	dynamic _acrResult;
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
 		_sendPort = sendPort;
-
+		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		final customData = await FlutterForegroundTask.getData<String>(key: 'customData');
 		print('custom data: $customData');
 	}
 
 	@override
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
+		_session = ACRCloud.startSession();
+		Future.delayed(const Duration(seconds: 10), () async {
+			_session.cancel();
+			_acrResult = await _session.result;
+		});
+		String result = '';
+		if (_acrResult == null) {
+			result = 'NULL';
+		} else {
+			if (_acrResult.metadata!.customFiles != null) {
+				dynamic customFile = _acrResult.metadata!.customFiles.first;
+				result = customFile!.title;
+			}
+			else if (_acrResult.metadata!.liveChannels != null) {
+				dynamic liveChannel = _acrResult.metadata!.liveChannels.first;
+				result = liveChannel!.title;
+			}
+		}
 		FlutterForegroundTask.updateService(
-			notificationText: 'eventCount: $_eventCount',
+			notificationText: 'result: $result',
 			notificationTitle: 'MyTaskHandler'
 		);
 		sendPort?.send(_eventCount);
@@ -452,6 +483,7 @@ class MyTaskHandler extends TaskHandler {
 
 	@override
 	void onDestroy(DateTime timestamp, SendPort? sendPort) async {
+		_session.cancel();
 		print('onDestroy');
 	}
 
