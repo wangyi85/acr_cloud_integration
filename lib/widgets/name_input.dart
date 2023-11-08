@@ -1,25 +1,17 @@
 import 'package:flutter/material.dart';
 
-class EmailInput extends StatefulWidget {
+class NameInput extends StatefulWidget {
 	Function onChanged;
-	String? initialValue;
-	EmailInput({super.key, required this.onChanged, this.initialValue});
+	NameInput({super.key, required this.onChanged});
 
 	@override
-	_EmailInputState createState() => _EmailInputState();
+	_NameInputState createState() => _NameInputState();
 }
 
-class _EmailInputState extends State<EmailInput> {
-	TextEditingController _controller = TextEditingController();
-	@override
-	void initState() {
-		super.initState();
-		_controller.text = widget.initialValue ?? '';
-	}
+class _NameInputState extends State<NameInput> {
 	@override
 	Widget build(BuildContext context) {
 		return TextField(
-			controller: _controller,
 			style: const TextStyle(
 				fontFamily: 'Futura',
 				fontSize: 18,
@@ -29,7 +21,7 @@ class _EmailInputState extends State<EmailInput> {
 			decoration: InputDecoration(
 				filled: true,
 				fillColor: const Color(0xfff3f4f6),
-				prefixIcon: const Icon(Icons.mail_outline),
+				prefixIcon: const Icon(Icons.person_outlined),
 				border: OutlineInputBorder(
 					borderSide: BorderSide.none,
 					borderRadius: BorderRadius.circular(5)
@@ -39,7 +31,7 @@ class _EmailInputState extends State<EmailInput> {
 					borderSide: BorderSide.none
 				),
 			),
-			keyboardType: TextInputType.emailAddress,
+			keyboardType: TextInputType.name,
 			onChanged: (value) => widget.onChanged(value),
 		);
 	}

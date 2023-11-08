@@ -12,10 +12,12 @@ import 'package:redux/redux.dart';
 import 'package:audio_monitor/utils/consts.dart';
 
 void main() {
+	HttpOverrides.global = MyHttpOverrides();
 	final store = Store<AppState>(appReducer, initialState: AppState(
 		recordStatus: RecordStatus(isBackground: false, isRunning: false),
 		result: Result(''),
-		deviceInfo: DeviceInfo(uuid: '', imei: '', model: '', brand: '')
+		deviceInfo: DeviceInfo(uuid: '', imei: '', model: '', brand: ''),
+		user: User(id: 0, name: '', lastName: '', email: '', gender: '')
 	));
 	WidgetsFlutterBinding.ensureInitialized();
 	// BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
@@ -99,5 +101,13 @@ class _RestartWidgetState extends State<RestartWidget> {
 			key: key,
 			child: widget.child,
 		);
+	}
+}
+
+class MyHttpOverrides extends HttpOverrides{
+	@override
+	HttpClient createHttpClient(SecurityContext? context){
+		return super.createHttpClient(context)
+			..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
 	}
 }

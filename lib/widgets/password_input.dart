@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PasswordInput extends StatefulWidget {
-	PasswordInput({super.key});
+	Function onChanged;
+	PasswordInput({super.key, required this.onChanged});
 
 	@override
 	_PasswordInputState createState() => _PasswordInputState();
@@ -40,6 +41,7 @@ class _PasswordInputState extends State<PasswordInput> {
 					borderSide: BorderSide.none
 				),
 			),
+			onChanged: (value) => widget.onChanged(value),
 		);
 	}
 }
