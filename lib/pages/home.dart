@@ -259,14 +259,15 @@ class _HomeState extends State<Home> {
 	void setResult(ACRCloudResponse? result) {
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
-		if (result == null) {
+		if (result!.metadata == null) {
 			store.dispatch(SetResult('NULL'));
 		} else {
 			if (result.metadata!.customFiles != null) {
 				dynamic customFile = result.metadata!.customFiles.first;
 				store.dispatch(SetResult(customFile!.title));
 			}
-			else if (result.metadata!.liveChannels != null) {
+			else {
+				print(result.metadata!.liveChannels);
 				dynamic liveChannel = result.metadata!.liveChannels.first;
 				store.dispatch(SetResult(liveChannel!.title));
 			}

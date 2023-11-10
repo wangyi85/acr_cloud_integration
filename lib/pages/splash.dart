@@ -27,9 +27,9 @@ class _SplashState extends State<Splash> {
 	}
 
 	void getDeviceInfo(store) async {
-		store.dispatch(SetIMEI(await DeviceImei().getDeviceImei() ?? ''));
+		// store.dispatch(SetIMEI(await DeviceImei().getDeviceImei() ?? ''));
 		store.dispatch(SetDeviceModel((await DeviceImei().getDeviceInfo())!.model ?? ''));
-		store.dispatch(SetUUID(await DeviceUuid().getUUID() ?? ''));
+		// store.dispatch(SetUUID(await DeviceUuid().getUUID() ?? ''));
 		store.dispatch(SetBrand((await DeviceImei().getDeviceInfo())!.manufacture ?? ''));
 	}
 
