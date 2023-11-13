@@ -11,7 +11,6 @@ import 'package:audio_monitor/widgets/password_input.dart';
 import 'package:audio_monitor/widgets/toaster_message.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart' as http;
 

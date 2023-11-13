@@ -9,6 +9,7 @@ environment:
 dependencies:
   background_fetch: ^1.2.1
   device_imei: ^0.0.4+1
+  device_info: ^2.0.3
   device_uuid: ^0.0.4
   email_validator: ^2.1.17
   flutter:
@@ -18,6 +19,7 @@ dependencies:
   flutter_foreground_task: ^6.1.2
   flutter_redux: ^0.10.0
   http: ^0.13.6
+  intl: ^0.18.1
   permission_handler: ^11.0.1
   redux: ^5.0.0
   workmanager: ^0.5.1

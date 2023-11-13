@@ -12,13 +12,14 @@ import 'package:audio_monitor/widgets/bottombar.dart';
 import 'package:audio_monitor/widgets/start_rec_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_back_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_btn.dart';
-import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_monitor/utils/consts.dart';
 import 'package:flutter_acrcloud/flutter_acrcloud.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -46,7 +47,6 @@ class _HomeState extends State<Home> {
 	void onInit(store) async {
 		await askPermissions();
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
-		// await initPlatformState();
 	}
 
 	Future<void> askPermissions() async {
@@ -157,8 +157,15 @@ class _HomeState extends State<Home> {
 	}
 
 	Future<bool> _startForegroundTask() async {
+		dynamic store;
+		if (context.mounted) store = StoreProvider.of<AppState>(context);
+
 		// You can save data using the saveData function.
-		await FlutterForegroundTask.saveData(key: 'customData', value: 'hello');
+		await FlutterForegroundTask.saveData(key: 'user_id', value: store.state.user.id);
+		await FlutterForegroundTask.saveData(key: 'uuid', value: store.state.deviceInfo.uuid);
+		await FlutterForegroundTask.saveData(key: 'imei', value: store.state.deviceInfo.imei);
+		await FlutterForegroundTask.saveData(key: 'model', value: store.state.deviceInfo.model);
+		await FlutterForegroundTask.saveData(key: 'brand', value: store.state.deviceInfo.brand);
 
 		// Register the receivePort before starting the service.
 		final ReceivePort? receivePort = FlutterForegroundTask.receivePort;
@@ -179,46 +186,6 @@ class _HomeState extends State<Home> {
 		}
 	}
 
-	// Platform messages are asynchronous, so we initialize in an async method.
-  	Future<void> initPlatformState() async {
-		// Configure BackgroundFetch.
-		int status = await BackgroundFetch.configure(BackgroundFetchConfig(
-			minimumFetchInterval: 15,
-			stopOnTerminate: false,
-			enableHeadless: true,
-			requiresBatteryNotLow: false,
-			requiresCharging: false,
-			requiresStorageNotLow: false,
-			requiresDeviceIdle: false,
-			requiredNetworkType: NetworkType.NONE,
-			forceAlarmManager: true
-		), (String taskId) async {  // <-- Event handler
-		// This is the fetch-event callback.
-			print("[BackgroundFetch] Event received $taskId");
-			// IMPORTANT:  You must signal completion of your task or the OS can punish your app
-			// for taking too long in the background.
-			await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
-			final session = ACRCloud.startSession();
-			print(session.volumeStream);
-			Future.delayed(const Duration(seconds: 10), () async {
-				session.cancel();
-				final result = await session.result;
-				print(result!.status.msg);
-			});
-			BackgroundFetch.finish(taskId);
-		}, (String taskId) async {  // <-- Task timeout handler.
-		// This task has exceeded its allowed running-time.  You must stop what you're doing and immediately .finish(taskId)
-			print("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
-			BackgroundFetch.finish(taskId);
-		});
-		print('[BackgroundFetch] configure success: $status');
-
-		// If the widget was removed from the tree while the asynchronous platform
-		// message was in flight, we want to discard the reply rather than calling
-		// setState to update our non-existent appearance.
-		if (!mounted) return;
-  	}
-
 	void onNavigate(int index) {
 		switch(index) {
 			case 0:
@@ -235,7 +202,6 @@ class _HomeState extends State<Home> {
 	}
 
 	void startRecord() async {
-		print('startRecord');
 		setState(() {
 			_session = ACRCloud.startSession();
 		});
@@ -256,21 +222,54 @@ class _HomeState extends State<Home> {
 		setResult(result);
 	}
 
-	void setResult(ACRCloudResponse? result) {
+	void setResult(ACRCloudResponse? result) async {
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
-		if (result!.metadata == null) {
+		
+		if (result == null || result.metadata == null) {
 			store.dispatch(SetResult('NULL'));
 		} else {
-			if (result.metadata!.customFiles != null) {
+			print(result.metadata);
+			if (result.metadata!.customFiles.isNotEmpty) {
 				dynamic customFile = result.metadata!.customFiles.first;
-				store.dispatch(SetResult(customFile!.title));
+				await store.dispatch(SetResult(customFile!.title));
+				await sendResult();
 			}
-			else {
-				print(result.metadata!.liveChannels);
-				dynamic liveChannel = result.metadata!.liveChannels.first;
-				store.dispatch(SetResult(liveChannel!.title));
+			else if (result.metadata!.customStreams.isNotEmpty) {
+				dynamic liveChannel = result.metadata!.customStreams.first;
+				await store.dispatch(SetResult(liveChannel!.title));
+				await sendResult();
 			}
+		}
+	}
+
+	Future<void> sendResult() async {
+		dynamic store;
+		if (context.mounted) store = StoreProvider.of<AppState>(context);
+
+		try {
+			var response = (await http.post(Uri.parse('$serverBaseUrl/registerACRResult'), 
+				headers: <String, String>{
+					'Content-Type': 'application/json; charset=UTF-8'
+				},
+				body: jsonEncode(<String, dynamic>{
+					'user_id': store.state.user.id,
+					'uuid': store.state.deviceInfo.uuid,
+					'imei': store.state.deviceInfo.imei,
+					'model': store.state.deviceInfo.model,
+					'brand': store.state.deviceInfo.brand,
+					'acr_result': store.state.result.result,
+					'duration': 10,
+					'recorded_at': DateFormat('dd/MM/yyyy').format(DateTime.now())
+				})
+			));
+			var data = jsonDecode(response.body);
+			if (data['status'] == 'success') {
+			} else {
+				print(data['comment']);
+			}
+		} catch (e) {
+			print(e.toString());
 		}
 	}
 
@@ -279,9 +278,6 @@ class _HomeState extends State<Home> {
 	}
 
 	void stopRecordBackground() async {
-		// BackgroundFetch.stop().then((int status) {
-		// 	print('[BackgroundFetch] stop success: $status');
-		// });
 		await _stopForegroundTask();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
@@ -290,11 +286,6 @@ class _HomeState extends State<Home> {
 
 	void runBackgroundService() async {
 		if (_session != null) _session.cancel();
-		// BackgroundFetch.start().then((int status) {
-		// 	print('[BackgroundFetch] start success: $status');
-		// }).catchError((e) {
-		// 	print('[BackgroundFetch] start FAILURE: $e');
-		// });
 		await _startForegroundTask();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
@@ -309,130 +300,143 @@ class _HomeState extends State<Home> {
 				body: StoreConnector<AppState, AppState>(
 					onInit: (store) => onInit(store),
 					converter: (store) => store.state,
-					builder: (context, state) => InkWell(
-						onDoubleTap: () => runBackgroundService(),
-						child: Container(
-							width: double.infinity,
-							height: double.infinity,
-							padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-							color: Colors.white,
-							child: Stack(
-								alignment: Alignment.center,
-								children: [
-									Column(
-										mainAxisAlignment: MainAxisAlignment.start,
-										mainAxisSize: MainAxisSize.max,
-										crossAxisAlignment: CrossAxisAlignment.center,
-										children: [
-											Container(
+					builder: (context, state) => LayoutBuilder(
+						builder: (BuildContext context, BoxConstraints viewportConstraints) {
+							return SingleChildScrollView(
+								child: ConstrainedBox(
+									constraints: BoxConstraints(
+										minHeight: viewportConstraints.maxHeight
+									),
+									child: IntrinsicHeight(
+										child: InkWell(
+											onDoubleTap: () => runBackgroundService(),
+											child: Container(
 												width: double.infinity,
-												child: Column(
-													mainAxisAlignment: MainAxisAlignment.center,
-													mainAxisSize: MainAxisSize.min,
-													crossAxisAlignment: CrossAxisAlignment.start,
-													children: const [
-														Padding(
-															padding: EdgeInsets.only(top: 30, bottom: 10),
-															child: Text(
-																'LOGO APP',
-																style: TextStyle(
-																	fontFamily: 'Futura',
-																	fontSize: 30,
-																	fontWeight: FontWeight.w700,
-																	color: Colors.black
+												height: double.infinity,
+												padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+												color: Colors.white,
+												child: Stack(
+													alignment: Alignment.center,
+													children: [
+														Column(
+															mainAxisAlignment: MainAxisAlignment.start,
+															mainAxisSize: MainAxisSize.max,
+															crossAxisAlignment: CrossAxisAlignment.center,
+															children: [
+																Container(
+																	width: double.infinity,
+																	child: Column(
+																		mainAxisAlignment: MainAxisAlignment.center,
+																		mainAxisSize: MainAxisSize.min,
+																		crossAxisAlignment: CrossAxisAlignment.start,
+																		children: const [
+																			Padding(
+																				padding: EdgeInsets.only(top: 30, bottom: 10),
+																				child: Text(
+																					'LOGO APP',
+																					style: TextStyle(
+																						fontFamily: 'Futura',
+																						fontSize: 30,
+																						fontWeight: FontWeight.w700,
+																						color: Colors.black
+																					),
+																				),
+																			),
+																			Padding(
+																				padding: EdgeInsets.only(bottom: 30),
+																				child: Text(
+																					'Double tap to record in background',
+																					style: TextStyle(
+																						fontFamily: 'Futura',
+																						fontSize: 16,
+																						fontWeight: FontWeight.w500,
+																						color: Colors.black
+																					),
+																				),
+																			)
+																		],
+																	),
 																),
-															),
+																const SizedBox(height: 100,),
+																!state.recordStatus.isRunning ? StartRecBtn(onRecord: startRecord,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecordBackground,) : StopRecBtn(onStop: stopRecord,),
+																const SizedBox(height: 15,),
+																(state.recordStatus.isRunning && !state.recordStatus.isBackground && _session != null) ? StreamBuilder(
+																	stream: _session.volumeStream,
+																	initialData: 0.0,
+																	builder: (_, snapshot) =>
+																		Text(
+																			'Recorded Volume: ${snapshot.data.toString()}',
+																			style: const TextStyle(
+																				fontFamily: 'Futura',
+																				fontSize: 18,
+																				color: Colors.black,
+																				fontWeight: FontWeight.w400
+																			),
+																		),
+																): Container(),
+																const SizedBox(height: 5,),
+																Text(
+																	'Match Result: ${state.result.result}',
+																	style: const TextStyle(
+																		fontFamily: 'Futura',
+																		fontSize: 18,
+																		color: Colors.black,
+																		fontWeight: FontWeight.w400
+																	),
+																)
+															],
 														),
-														Padding(
-															padding: EdgeInsets.only(bottom: 30),
-															child: Text(
-																'Double tap to record in background',
-																style: TextStyle(
-																	fontFamily: 'Futura',
-																	fontSize: 16,
-																	fontWeight: FontWeight.w500,
-																	color: Colors.black
-																),
-															),
-														)
+														state.recordStatus.isRunning ? 
+															state.recordStatus.isBackground ?
+																Positioned(
+																	top: 130,
+																	child: Row(
+																		mainAxisAlignment: MainAxisAlignment.center,
+																		mainAxisSize: MainAxisSize.min,
+																		children: const [
+																			Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
+																			SizedBox(width: 5,),
+																			Text(
+																				'BACKGROUND RECOGNITION',
+																				style: TextStyle(
+																					fontFamily: 'Futura',
+																					fontSize: 18,
+																					color: Colors.black,
+																					fontWeight: FontWeight.w400
+																				),
+																			)
+																		],
+																	)
+																)
+															: Positioned(
+																top: 130,
+																child: Row(
+																	mainAxisAlignment: MainAxisAlignment.center,
+																	mainAxisSize: MainAxisSize.min,
+																	children: const [
+																		Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
+																		SizedBox(width: 5,),
+																		Text(
+																			'FOREGROUND RECOGNITION',
+																			style: TextStyle(
+																				fontFamily: 'Futura',
+																				fontSize: 18,
+																				color: Colors.black,
+																				fontWeight: FontWeight.w400
+																			),
+																		)
+																	],
+																)
+															)
+														: Container()
 													],
 												),
 											),
-											const SizedBox(height: 100,),
-											!state.recordStatus.isRunning ? StartRecBtn(onRecord: startRecord,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecordBackground,) : StopRecBtn(onStop: stopRecord,),
-											const SizedBox(height: 15,),
-											(state.recordStatus.isRunning && !state.recordStatus.isBackground && _session != null) ? StreamBuilder(
-												stream: _session.volumeStream,
-												initialData: 0.0,
-												builder: (_, snapshot) =>
-													Text(
-														'Recorded Volume: ${snapshot.data.toString()}',
-														style: const TextStyle(
-															fontFamily: 'Futura',
-															fontSize: 18,
-															color: Colors.black,
-															fontWeight: FontWeight.w400
-														),
-													),
-											): Container(),
-											const SizedBox(height: 5,),
-											Text(
-												'Match Result: ${state.result.result}',
-												style: const TextStyle(
-													fontFamily: 'Futura',
-													fontSize: 18,
-													color: Colors.black,
-													fontWeight: FontWeight.w400
-												),
-											)
-										],
-									),
-									state.recordStatus.isRunning ? 
-										state.recordStatus.isBackground ?
-											Positioned(
-												top: 130,
-												child: Row(
-													mainAxisAlignment: MainAxisAlignment.center,
-													mainAxisSize: MainAxisSize.min,
-													children: const [
-														Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
-														SizedBox(width: 5,),
-														Text(
-															'BACKGROUND RECOGNITION',
-															style: TextStyle(
-																fontFamily: 'Futura',
-																fontSize: 18,
-																color: Colors.black,
-																fontWeight: FontWeight.w400
-															),
-														)
-													],
-												)
-											)
-										: Positioned(
-											top: 130,
-											child: Row(
-												mainAxisAlignment: MainAxisAlignment.center,
-												mainAxisSize: MainAxisSize.min,
-												children: const [
-													Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
-													SizedBox(width: 5,),
-													Text(
-														'FOREGROUND RECOGNITION',
-														style: TextStyle(
-															fontFamily: 'Futura',
-															fontSize: 18,
-															color: Colors.black,
-															fontWeight: FontWeight.w400
-														),
-													)
-												],
-											)
 										)
-									: Container()
-								],
-							),
-						),
+									),
+								),
+							);
+						}
 					),
 				),
 			)
@@ -445,39 +449,48 @@ class MyTaskHandler extends TaskHandler {
 	int _eventCount = 0;
 	dynamic _session;
 	dynamic _acrResult;
+	int _userId = 0;
+	String _uuid = '';
+	String _imei = '';
+	String _model = '';
+	String _brand = '';
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
 		_sendPort = sendPort;
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
-		final customData = await FlutterForegroundTask.getData<String>(key: 'customData');
-		print('custom data: $customData');
+		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
+		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
+		_imei = await FlutterForegroundTask.getData<String>(key: 'imei') ?? '';
+		_model = await FlutterForegroundTask.getData<String>(key: 'model') ?? '';
+		_brand = await FlutterForegroundTask.getData<String>(key: 'brand') ?? '';
 	}
 
 	@override
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		_session = ACRCloud.startSession();
-		Future.delayed(const Duration(seconds: 10), () async {
-			_session.cancel();
+		await Future.delayed(const Duration(seconds: 10), () async {
+			// _session.cancel();
 			_acrResult = await _session.result;
+			String result = '';
+			if (_acrResult == null || _acrResult.metadata == null) {
+				result = 'NULL';
+			} else {
+				if (_acrResult.metadata!.customFiles != null) {
+					dynamic customFile = _acrResult.metadata!.customFiles.first;
+					result = customFile!.title;
+				}
+				else if (_acrResult.metadata!.customStreams != null) {
+					dynamic liveChannel = _acrResult.metadata!.customStreams.first;
+					result = liveChannel!.title;
+				}
+			}
+			FlutterForegroundTask.updateService(
+				notificationText: 'result: $result',
+				notificationTitle: 'MyTaskHandler'
+			);
+			sendResult(result);
 		});
-		String result = '';
-		if (_acrResult == null) {
-			result = 'NULL';
-		} else {
-			if (_acrResult.metadata!.customFiles != null) {
-				dynamic customFile = _acrResult.metadata!.customFiles.first;
-				result = customFile!.title;
-			}
-			else if (_acrResult.metadata!.liveChannels != null) {
-				dynamic liveChannel = _acrResult.metadata!.liveChannels.first;
-				result = liveChannel!.title;
-			}
-		}
-		FlutterForegroundTask.updateService(
-			notificationText: 'result: $result',
-			notificationTitle: 'MyTaskHandler'
-		);
 		sendPort?.send(_eventCount);
 		_eventCount ++;
 	}
@@ -497,5 +510,32 @@ class MyTaskHandler extends TaskHandler {
 	void onNotificationPressed() {
 		FlutterForegroundTask.launchApp('/resume-route');
 		_sendPort?.send('onNotificationPressed');
+	}
+
+	Future<void> sendResult(result) async {
+		try {
+			var response = (await http.post(Uri.parse('$serverBaseUrl/registerACRResult'), 
+				headers: <String, String>{
+					'Content-Type': 'application/json; charset=UTF-8'
+				},
+				body: jsonEncode(<String, dynamic>{
+					'user_id': _userId,
+					'uuid': '_uuid',
+					'imei': '_imei',
+					'model': _model,
+					'brand': _brand,
+					'acr_result': result,
+					'duration': 10,
+					'recorded_at': DateFormat('dd/MM/yyyy').format(DateTime.now())
+				})
+			));
+			var data = jsonDecode(response.body);
+			if (data['status'] == 'success') {
+			} else {
+				print(data['comment']);
+			}
+		} catch (e) {
+			print(e.toString());
+		}
 	}
 }

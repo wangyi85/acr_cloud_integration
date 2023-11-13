@@ -40,10 +40,10 @@ class ACRCloudResponseMetadata {
   final List<ACRCloudResponseCustomFileItem> customFiles;
 
   @JsonKey(
-      name: 'live_channels', defaultValue: <ACRCloudResponseLiveChannelItem>[])
-  final List<ACRCloudResponseLiveChannelItem> liveChannels;
+      name: 'custom_streams', defaultValue: <ACRCloudResponseCustomStreamItem>[])
+  final List<ACRCloudResponseCustomStreamItem> customStreams;
 
-  const ACRCloudResponseMetadata(this.music, this.customFiles, this.liveChannels);
+  const ACRCloudResponseMetadata(this.music, this.customFiles, this.customStreams);
 
   factory ACRCloudResponseMetadata.fromJson(Map<String, dynamic> json) =>
       _$ACRCloudResponseMetadataFromJson(json);
@@ -140,7 +140,7 @@ class ACRCloudResponseCustomFileItem {
 
 /// A single matching Live Channel.
 @JsonSerializable()
-class ACRCloudResponseLiveChannelItem {
+class ACRCloudResponseCustomStreamItem {
   @JsonKey(name: 'acrid')
   final String acrId;
 
@@ -154,9 +154,9 @@ class ACRCloudResponseLiveChannelItem {
   @JsonKey(name: 'result_type')
   final String resultType;
 
-  const ACRCloudResponseLiveChannelItem(
+  const ACRCloudResponseCustomStreamItem(
       this.acrId, this.title, this.timeStampsMs, this.score, this.resultType);
 
-  factory ACRCloudResponseLiveChannelItem.fromJson(Map<String, dynamic> json) =>
-      _$ACRCloudResponseLiveChannelItemFromJson(json);
+  factory ACRCloudResponseCustomStreamItem.fromJson(Map<String, dynamic> json) =>
+      _$ACRCloudResponseCustomStreamItemFromJson(json);
 }

@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:audio_monitor/models/app_state.dart';
 import 'package:audio_monitor/pages/auth/login.dart';
 import 'package:audio_monitor/store/actions/device_info_action.dart';
 import 'package:device_imei/device_imei.dart';
+import 'package:device_info/device_info.dart';
 import 'package:device_uuid/device_uuid.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class Splash extends StatefulWidget {
@@ -14,6 +18,7 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> {
+	static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 	bool _goNext = false;
 
 	@override
@@ -27,10 +32,25 @@ class _SplashState extends State<Splash> {
 	}
 
 	void getDeviceInfo(store) async {
-		// store.dispatch(SetIMEI(await DeviceImei().getDeviceImei() ?? ''));
-		store.dispatch(SetDeviceModel((await DeviceImei().getDeviceInfo())!.model ?? ''));
-		// store.dispatch(SetUUID(await DeviceUuid().getUUID() ?? ''));
-		store.dispatch(SetBrand((await DeviceImei().getDeviceInfo())!.manufacture ?? ''));
+		// try {
+		// 	store.dispatch(SetIMEI(await DeviceImei().getDeviceImei() ?? ''));
+		// } catch (e) {
+		// 	print(e.toString());
+		// }
+		store.dispatch(SetUUID(await DeviceUuid().getUUID() ?? ''));
+		try {
+			if (Platform.isAndroid) {
+				var deviceData = await deviceInfoPlugin.androidInfo;
+				store.dispatch(SetDeviceModel(deviceData.model));
+				store.dispatch(SetBrand(deviceData.brand));
+			} else if (Platform.isIOS) {
+				var deviceData = await deviceInfoPlugin.iosInfo;
+				store.dispatch(SetDeviceModel(deviceData.model));
+				store.dispatch(SetBrand(deviceData.name));
+			}
+		} on PlatformException {
+			print('platform exception');
+		}
 	}
 
 	@override

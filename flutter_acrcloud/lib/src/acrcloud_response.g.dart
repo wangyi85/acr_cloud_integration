@@ -36,8 +36,8 @@ ACRCloudResponseMetadata _$ACRCloudResponseMetadataFromJson(
                   e as Map<String, dynamic>))
               .toList() ??
           [],
-      (json['live_channels'] as List<dynamic>?)
-              ?.map((e) => ACRCloudResponseLiveChannelItem.fromJson(
+      (json['custom_streams'] as List<dynamic>?)
+              ?.map((e) => ACRCloudResponseCustomStreamItem.fromJson(
                   e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -83,9 +83,9 @@ ACRCloudResponseCustomFileItem _$ACRCloudResponseCustomFileItemFromJson(
       json['play_offset_ms'] as int,
     );
 
-ACRCloudResponseLiveChannelItem _$ACRCloudResponseLiveChannelItemFromJson(
+ACRCloudResponseCustomStreamItem _$ACRCloudResponseCustomStreamItemFromJson(
         Map<String, dynamic> json) =>
-    ACRCloudResponseLiveChannelItem(
+    ACRCloudResponseCustomStreamItem(
       json['acrid'] as String,
       json['title'] as String,
       json['timestamps_ms'] as String,
