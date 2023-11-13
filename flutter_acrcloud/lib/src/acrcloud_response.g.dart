@@ -41,6 +41,11 @@ ACRCloudResponseMetadata _$ACRCloudResponseMetadataFromJson(
                   e as Map<String, dynamic>))
               .toList() ??
           [],
+      (json['streams'] as List<dynamic>?)
+              ?.map((e) => ACRCloudResponseLiveChannelItem.fromJson(
+                  e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
 
 ACRCloudResponseMusicItem _$ACRCloudResponseMusicItemFromJson(
@@ -86,6 +91,16 @@ ACRCloudResponseCustomFileItem _$ACRCloudResponseCustomFileItemFromJson(
 ACRCloudResponseCustomStreamItem _$ACRCloudResponseCustomStreamItemFromJson(
         Map<String, dynamic> json) =>
     ACRCloudResponseCustomStreamItem(
+      json['acrid'] as String,
+      json['title'] as String,
+      json['timestamps_ms'] as String,
+      json['score'] as int,
+      json['result_type'] as String,
+    );
+
+ACRCloudResponseLiveChannelItem _$ACRCloudResponseLiveChannelItemFromJson(
+        Map<String, dynamic> json) =>
+    ACRCloudResponseLiveChannelItem(
       json['acrid'] as String,
       json['title'] as String,
       json['timestamps_ms'] as String,

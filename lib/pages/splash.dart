@@ -32,11 +32,11 @@ class _SplashState extends State<Splash> {
 	}
 
 	void getDeviceInfo(store) async {
-		// try {
-		// 	store.dispatch(SetIMEI(await DeviceImei().getDeviceImei() ?? ''));
-		// } catch (e) {
-		// 	print(e.toString());
-		// }
+		try {
+			store.dispatch(SetIMEI(await DeviceImei().getDeviceImei() ?? ''));
+		} catch (e) {
+			print(e.toString());
+		}
 		store.dispatch(SetUUID(await DeviceUuid().getUUID() ?? ''));
 		try {
 			if (Platform.isAndroid) {

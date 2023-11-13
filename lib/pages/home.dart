@@ -236,7 +236,11 @@ class _HomeState extends State<Home> {
 				await sendResult();
 			}
 			else if (result.metadata!.customStreams.isNotEmpty) {
-				dynamic liveChannel = result.metadata!.customStreams.first;
+				dynamic customStream = result.metadata!.customStreams.first;
+				await store.dispatch(SetResult(customStream!.title));
+				await sendResult();
+			} else if (result.metadata!.liveChannels.isNotEmpty) {
+				dynamic liveChannel = result.metadata!.liveChannels.first;
 				await store.dispatch(SetResult(liveChannel!.title));
 				await sendResult();
 			}
@@ -481,7 +485,11 @@ class MyTaskHandler extends TaskHandler {
 					result = customFile!.title;
 				}
 				else if (_acrResult.metadata!.customStreams != null) {
-					dynamic liveChannel = _acrResult.metadata!.customStreams.first;
+					dynamic customStream = _acrResult.metadata!.customStreams.first;
+					result = customStream!.title;
+				}
+				else if (_acrResult.metadata!.liveChannels != null) {
+					dynamic liveChannel = _acrResult.metadata!.liveChannels.first;
 					result = liveChannel!.title;
 				}
 			}
