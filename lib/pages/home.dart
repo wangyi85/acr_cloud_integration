@@ -239,7 +239,6 @@ class _HomeState extends State<Home> {
 		if (result == null || result.status.code != 0) {
 			store.dispatch(SetResult('NULL'));
 		} else {
-			print(result.metadata);
 			if (result.metadata!.customFiles.isNotEmpty) {
 				dynamic customFile = result.metadata!.customFiles.first;
 				store.dispatch(SetResult(customFile!.title));
@@ -497,7 +496,7 @@ class MyTaskHandler extends TaskHandler {
 			notificationText: 'result: $result',
 			notificationTitle: 'MyTaskHandler'
 		);
-		sendResult(result);
+		if (result != 'NULL') sendResult(result);
 		sendPort?.send(_eventCount);
 		_eventCount ++;
 	}

@@ -1,4 +1,4 @@
-package com.example.audio_monitor
+package it.chartmusic.radiomonitor
 
 import io.flutter.embedding.android.FlutterActivity
 
