@@ -42,12 +42,21 @@ class _HomeState extends State<Home> {
 	@override
 	void initState() {
 		super.initState();
-		_initForegroundTask();
+		WidgetsBinding.instance.addPostFrameCallback((_) async {
+			await _requestPermissionForAndroid();
+			_initForegroundTask();
+			
+			// You can get the previous ReceivePort without restarting the service.
+			if (await FlutterForegroundTask.isRunningService) {
+				final newReceivePort = FlutterForegroundTask.receivePort;
+				_registerReceivePort(newReceivePort);
+			}
+		});
 	}
 
 	void onInit(store) async {
 		await askPermissions();
-		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+		// await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 	}
 
 	Future<void> askPermissions() async {
@@ -203,6 +212,7 @@ class _HomeState extends State<Home> {
 	}
 
 	void startRecord() async {
+		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		setState(() {
 			_session = ACRCloud.startSession();
 		});
@@ -458,7 +468,8 @@ class MyTaskHandler extends TaskHandler {
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
 		_sendPort = sendPort;
-		await askPermissions();
+		// await askPermissions();
+		print(ACRCloud.isSetUp);
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
@@ -495,7 +506,7 @@ class MyTaskHandler extends TaskHandler {
 
 	@override
 	void onDestroy(DateTime timestamp, SendPort? sendPort) async {
-		_session.cancel();
+		if (_session != null) _session.cancel();
 		print('onDestroy');
 	}
 
