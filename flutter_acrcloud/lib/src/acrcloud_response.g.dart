@@ -27,25 +27,14 @@ ACRCloudResponseMetadata _$ACRCloudResponseMetadataFromJson(
         Map<String, dynamic> json) =>
     ACRCloudResponseMetadata(
       (json['music'] as List<dynamic>?)
-              ?.map((e) =>
-                  ACRCloudResponseMusicItem.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+              ?.map((e) => ACRCloudResponseMusicItem.fromJson(e as Map<String, dynamic>))
+              .toList() ?? [],
       (json['custom_files'] as List<dynamic>?)
-              ?.map((e) => ACRCloudResponseCustomFileItem.fromJson(
-                  e as Map<String, dynamic>))
-              .toList() ??
-          [],
+              ?.map((e) => ACRCloudResponseCustomFileItem.fromJson(e as Map<String, dynamic>))
+              .toList() ?? [],
       (json['custom_streams'] as List<dynamic>?)
-              ?.map((e) => ACRCloudResponseCustomStreamItem.fromJson(
-                  e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      (json['streams'] as List<dynamic>?)
-              ?.map((e) => ACRCloudResponseLiveChannelItem.fromJson(
-                  e as Map<String, dynamic>))
-              .toList() ??
-          [],
+              ?.map((e) => ACRCloudResponseCustomStreamItem.fromJson(e as Map<String, dynamic>))
+              .toList() ?? [],
     );
 
 ACRCloudResponseMusicItem _$ACRCloudResponseMusicItemFromJson(
@@ -91,16 +80,6 @@ ACRCloudResponseCustomFileItem _$ACRCloudResponseCustomFileItemFromJson(
 ACRCloudResponseCustomStreamItem _$ACRCloudResponseCustomStreamItemFromJson(
         Map<String, dynamic> json) =>
     ACRCloudResponseCustomStreamItem(
-      json['acrid'] as String,
-      json['title'] as String,
-      json['timestamps_ms'] as String,
-      json['score'] as int,
-      json['result_type'] as String,
-    );
-
-ACRCloudResponseLiveChannelItem _$ACRCloudResponseLiveChannelItemFromJson(
-        Map<String, dynamic> json) =>
-    ACRCloudResponseLiveChannelItem(
       json['acrid'] as String,
       json['title'] as String,
       json['timestamps_ms'] as String,

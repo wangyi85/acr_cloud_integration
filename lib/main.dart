@@ -21,7 +21,7 @@ void main() {
 	));
 	WidgetsFlutterBinding.ensureInitialized();
 	// BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
-  	runApp(RestartWidget(child: StoreProvider(store: store, child: const MainApp())));
+  	runApp(StoreProvider(store: store, child: const MainApp()));
 }
 
 @pragma('vm:entry-point')

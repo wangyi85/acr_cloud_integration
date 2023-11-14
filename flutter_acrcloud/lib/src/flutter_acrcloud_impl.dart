@@ -71,6 +71,7 @@ class ACRCloud {
       if (call.method == 'volume') {
         _session?._volume.add(call.arguments);
       } else if (call.method == 'result') {
+        print(json.decode(call.arguments));
         _session?._result
             .complete(ACRCloudResponse.fromJson(json.decode(call.arguments)));
       }

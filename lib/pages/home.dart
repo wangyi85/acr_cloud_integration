@@ -12,6 +12,7 @@ import 'package:audio_monitor/widgets/bottombar.dart';
 import 'package:audio_monitor/widgets/start_rec_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_back_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_btn.dart';
+import 'package:audio_monitor/widgets/toaster_message.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_monitor/utils/consts.dart';
 import 'package:flutter_acrcloud/flutter_acrcloud.dart';
@@ -52,7 +53,7 @@ class _HomeState extends State<Home> {
 	Future<void> askPermissions() async {
 		var status = await Permission.microphone.status;
 		if ((status.isDenied || status.isPermanentlyDenied) && Platform.isAndroid) {
-			await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage].request();
+			await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage,].request();
 		}
 	}
 
@@ -209,6 +210,7 @@ class _HomeState extends State<Home> {
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: true)));
 		final result = await _session.result;
+		if (result != null && context.mounted) ScaffoldMessenger.of(context).showSnackBar(ToasterMessage.showSuccessMessage(result.status.msg));
 		setResult(result);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
 	}
@@ -218,31 +220,25 @@ class _HomeState extends State<Home> {
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
 		_session.cancel();
-		final result = await _session.result;
-		setResult(result);
 	}
 
 	void setResult(ACRCloudResponse? result) async {
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		
-		if (result == null || result.metadata == null) {
+		if (result == null || result.status.code != 0) {
 			store.dispatch(SetResult('NULL'));
 		} else {
 			print(result.metadata);
 			if (result.metadata!.customFiles.isNotEmpty) {
 				dynamic customFile = result.metadata!.customFiles.first;
-				await store.dispatch(SetResult(customFile!.title));
-				await sendResult();
+				store.dispatch(SetResult(customFile!.title));
+				sendResult();
 			}
 			else if (result.metadata!.customStreams.isNotEmpty) {
 				dynamic customStream = result.metadata!.customStreams.first;
-				await store.dispatch(SetResult(customStream!.title));
-				await sendResult();
-			} else if (result.metadata!.liveChannels.isNotEmpty) {
-				dynamic liveChannel = result.metadata!.liveChannels.first;
-				await store.dispatch(SetResult(liveChannel!.title));
-				await sendResult();
+				store.dispatch(SetResult(customStream!.title));
+				sendResult();
 			}
 		}
 	}
@@ -480,15 +476,15 @@ class MyTaskHandler extends TaskHandler {
 			if (_acrResult == null || _acrResult.metadata == null) {
 				result = 'NULL';
 			} else {
-				if (_acrResult.metadata!.customFiles != null) {
+				if (_acrResult.metadata!.customFiles.isNotEmpty) {
 					dynamic customFile = _acrResult.metadata!.customFiles.first;
 					result = customFile!.title;
 				}
-				else if (_acrResult.metadata!.customStreams != null) {
+				else if (_acrResult.metadata!.customStreams.isNotEmpty) {
 					dynamic customStream = _acrResult.metadata!.customStreams.first;
 					result = customStream!.title;
 				}
-				else if (_acrResult.metadata!.liveChannels != null) {
+				else if (_acrResult.metadata!.liveChannels.isNotEmpty) {
 					dynamic liveChannel = _acrResult.metadata!.liveChannels.first;
 					result = liveChannel!.title;
 				}
