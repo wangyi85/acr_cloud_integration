@@ -211,7 +211,7 @@ class _HomeState extends State<Home> {
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: true)));
 		final result = await _session.result;
 		if (result != null && context.mounted) ScaffoldMessenger.of(context).showSnackBar(ToasterMessage.showSuccessMessage(result.status.msg));
-		setResult(result);
+		await setResult(result);
 		store.dispatch(SetRecordStatus(RecordStatus(isBackground: false, isRunning: false)));
 	}
 
@@ -222,7 +222,7 @@ class _HomeState extends State<Home> {
 		_session.cancel();
 	}
 
-	void setResult(ACRCloudResponse? result) async {
+	Future<void> setResult(ACRCloudResponse? result) async {
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 		
@@ -457,44 +457,38 @@ class MyTaskHandler extends TaskHandler {
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
-		_sendPort = sendPort;
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
 		_imei = await FlutterForegroundTask.getData<String>(key: 'imei') ?? '';
 		_model = await FlutterForegroundTask.getData<String>(key: 'model') ?? '';
 		_brand = await FlutterForegroundTask.getData<String>(key: 'brand') ?? '';
+		
+		_sendPort = sendPort;
 	}
 
 	@override
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		_session = ACRCloud.startSession();
-		await Future.delayed(const Duration(seconds: 10), () async {
-			// _session.cancel();
-			_acrResult = await _session.result;
-			String result = '';
-			if (_acrResult == null || _acrResult.metadata == null) {
-				result = 'NULL';
-			} else {
-				if (_acrResult.metadata!.customFiles.isNotEmpty) {
-					dynamic customFile = _acrResult.metadata!.customFiles.first;
-					result = customFile!.title;
-				}
-				else if (_acrResult.metadata!.customStreams.isNotEmpty) {
-					dynamic customStream = _acrResult.metadata!.customStreams.first;
-					result = customStream!.title;
-				}
-				else if (_acrResult.metadata!.liveChannels.isNotEmpty) {
-					dynamic liveChannel = _acrResult.metadata!.liveChannels.first;
-					result = liveChannel!.title;
-				}
+		_acrResult = await _session.result;
+		String result = '';
+		if (_acrResult == null || _acrResult.metadata == null) {
+			result = 'NULL';
+		} else {
+			if (_acrResult.metadata!.customFiles.isNotEmpty) {
+				dynamic customFile = _acrResult.metadata!.customFiles.first;
+				result = customFile!.title;
 			}
-			FlutterForegroundTask.updateService(
-				notificationText: 'result: $result',
-				notificationTitle: 'MyTaskHandler'
-			);
-			sendResult(result);
-		});
+			else if (_acrResult.metadata!.customStreams.isNotEmpty) {
+				dynamic customStream = _acrResult.metadata!.customStreams.first;
+				result = customStream!.title;
+			}
+		}
+		FlutterForegroundTask.updateService(
+			notificationText: 'result: $result',
+			notificationTitle: 'MyTaskHandler'
+		);
+		sendResult(result);
 		sendPort?.send(_eventCount);
 		_eventCount ++;
 	}
