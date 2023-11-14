@@ -47,5 +47,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key><string>Necessario uso del microfono</string>
+	<key>NSLocationUsageDescription</key><string>Questa app usa la tua posizione in background</string>
+	<key>NSLocationWhenInUseUsageDescription</key><string>Questa app usa la tua posizione quando in uso.</string>
 </dict>
 </plist>
