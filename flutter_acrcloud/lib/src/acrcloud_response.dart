@@ -146,8 +146,8 @@ class ACRCloudResponseCustomStreamItem {
 
   final String title;
 
-  @JsonKey(name: 'timestamps_ms')
-  final String timeStampsMs;
+  @JsonKey(name: 'timestamp_ms')
+  final int timeStampMs;
 
   final int score;
 
@@ -155,7 +155,7 @@ class ACRCloudResponseCustomStreamItem {
   final String resultType;
 
   const ACRCloudResponseCustomStreamItem(
-      this.acrId, this.title, this.timeStampsMs, this.score, this.resultType);
+      this.acrId, this.title, this.timeStampMs, this.score, this.resultType);
 
   factory ACRCloudResponseCustomStreamItem.fromJson(Map<String, dynamic> json) =>
       _$ACRCloudResponseCustomStreamItemFromJson(json);

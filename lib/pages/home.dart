@@ -457,14 +457,14 @@ class MyTaskHandler extends TaskHandler {
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
+		_sendPort = sendPort;
+		await askPermissions();
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
 		_imei = await FlutterForegroundTask.getData<String>(key: 'imei') ?? '';
 		_model = await FlutterForegroundTask.getData<String>(key: 'model') ?? '';
 		_brand = await FlutterForegroundTask.getData<String>(key: 'brand') ?? '';
-		
-		_sendPort = sendPort;
 	}
 
 	@override
@@ -534,6 +534,13 @@ class MyTaskHandler extends TaskHandler {
 			}
 		} catch (e) {
 			print(e.toString());
+		}
+	}
+
+	Future<void> askPermissions() async {
+		var status = await Permission.microphone.status;
+		if ((status.isDenied || status.isPermanentlyDenied) && Platform.isAndroid) {
+			await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage,].request();
 		}
 	}
 }

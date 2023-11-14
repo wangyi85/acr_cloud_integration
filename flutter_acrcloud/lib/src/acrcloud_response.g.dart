@@ -82,7 +82,7 @@ ACRCloudResponseCustomStreamItem _$ACRCloudResponseCustomStreamItemFromJson(
     ACRCloudResponseCustomStreamItem(
       json['acrid'] as String,
       json['title'] as String,
-      json['timestamps_ms'] as String,
+      json['timestamp_ms'] as int,
       json['score'] as int,
       json['result_type'] as String,
     );
