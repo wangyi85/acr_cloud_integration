@@ -467,6 +467,7 @@ class MyTaskHandler extends TaskHandler {
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
 		_sendPort = sendPort;
+		await askPermissions();
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
@@ -526,8 +527,8 @@ class MyTaskHandler extends TaskHandler {
 				},
 				body: jsonEncode(<String, dynamic>{
 					'user_id': _userId,
-					'uuid': '_uuid',
-					'imei': '_imei',
+					'uuid': _uuid,
+					'imei': _imei,
 					'model': _model,
 					'brand': _brand,
 					'acr_result': result,
