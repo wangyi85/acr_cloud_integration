@@ -157,7 +157,7 @@ class _HomeState extends State<Home> {
 				playSound: false,
 			),
 			foregroundTaskOptions: const ForegroundTaskOptions(
-				interval: 15000,
+				interval: 60000,
 				isOnceEvent: false,
 				autoRunOnBoot: true,
 				allowWakeLock: true,
@@ -269,7 +269,7 @@ class _HomeState extends State<Home> {
 					'brand': store.state.deviceInfo.brand,
 					'acr_result': store.state.result.result,
 					'duration': 10,
-					'recorded_at': DateFormat('dd/MM/yyyy').format(DateTime.now())
+					'recorded_at': DateFormat('dd/MM/yyyy hh:mm').format(DateTime.now())
 				})
 			));
 			var data = jsonDecode(response.body);
@@ -533,7 +533,7 @@ class MyTaskHandler extends TaskHandler {
 					'brand': _brand,
 					'acr_result': result,
 					'duration': 10,
-					'recorded_at': DateFormat('dd/MM/yyyy').format(DateTime.now())
+					'recorded_at': DateFormat('dd/MM/yyyy hh:mm').format(DateTime.now())
 				})
 			));
 			var data = jsonDecode(response.body);
