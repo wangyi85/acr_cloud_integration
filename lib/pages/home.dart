@@ -131,6 +131,14 @@ class _HomeState extends State<Home> {
 	@override
 	void dispose() {
 		_closeReceivePort();
+		if (_session != null) {
+			if (Platform.isAndroid) {
+				_session.destroy();
+			}
+			else {
+				_session.cancel();
+			}
+		}
 		super.dispose();
 	}
 
@@ -213,7 +221,7 @@ class _HomeState extends State<Home> {
 
 	void startRecord() async {
 		print(ACRCloud.isSetUp);
-		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+		if (!ACRCloud.isSetUp) await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		setState(() {
 			_session = ACRCloud.startSession();
 		});
@@ -295,7 +303,14 @@ class _HomeState extends State<Home> {
 	}
 
 	void runBackgroundService() async {
-		_session.destroy();
+		if (_session != null) {
+			if (Platform.isAndroid) {
+				_session.destroy();
+			}
+			else {
+				_session.cancel();
+			}
+		}
 		await _startForegroundTask();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
@@ -503,7 +518,12 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	@override
 	void onDestroy(DateTime timestamp, SendPort? sendPort) async {
 		print(sendPort.hashCode);
-		_session.destroy();
+		if (Platform.isAndroid) {
+				_session.destroy();
+			}
+			else {
+				_session.cancel();
+			}
 		print('onDestroy');
 	}
 
