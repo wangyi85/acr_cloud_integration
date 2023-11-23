@@ -23,6 +23,7 @@ dependencies:
   intl: ^0.18.1
   permission_handler: ^11.0.1
   redux: ^5.0.0
+  shared_preferences: ^2.2.2
   workmanager: ^0.5.1
 
 dev_dependencies:

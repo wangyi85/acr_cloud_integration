@@ -1,23 +1,74 @@
 import UIKit
 import Flutter
+import AVFoundation
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
-  override func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-  ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
+	var audioRecorder: AVAudioRecorder?
 
-    SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
-    if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+	override func application(
+		_ application: UIApplication,
+		didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+	) -> Bool {
+		GeneratedPluginRegistrant.register(with: self)
+
+		SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
+		if #available(iOS 10.0, *) {
+			UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+			setupAudioSession()
+		}
+
+		return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+	}
+
+	func setupAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try AVAudioSession.sharedInstance().setCategory(
+                AVAudioSession.Category.playAndRecord,
+                mode: AVAudioSession.Mode.default,
+                options: [
+                    AVAudioSession.CategoryOptions.duckOthers
+                ]
+            )
+            try! AVAudioSession.sharedInstance().setActive(true)
+                
+            //<<try audioSession.setActive(true)
+        } catch {
+            print("Error setting up audio session: \(error.localizedDescription)")
+        }
     }
+	
+    func startRecording() {
+		let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
 
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
+		let settings = [
+			AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+			AVSampleRateKey: 44100,
+			AVNumberOfChannelsKey: 2,
+			AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+		] as [String : Any]
+
+		do {
+			audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+			audioRecorder?.record()
+		} catch {
+			print("Error recording audio: \(error.localizedDescription)")
+		}
+	}
+        
+	func getDocumentsDirectory() -> URL {
+		let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+		return paths[0]
+	}
+
+    override func applicationWillResignActive(_ application: UIApplication) {
+		// This method is called when the app is about to move from active to inactive state.
+		// Set up the audio session when the app enters the background.
+		startRecording()
+	}
 }
 
 func registerPlugins(registry: FlutterPluginRegistry) {
-  GeneratedPluginRegistrant.register(with: registry)
+  	GeneratedPluginRegistrant.register(with: registry)
 }

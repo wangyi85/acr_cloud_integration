@@ -13,6 +13,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class Login extends StatefulWidget {
@@ -76,6 +77,15 @@ class _LoginState extends State<Login> {
 			));
 			var data = jsonDecode(response.body);
 			if (data['status'] == 'success') {
+				if (_rememberMe) {
+					var prefs = await SharedPreferences.getInstance();
+					prefs.setBool('isRememberMe', true);
+					prefs.setInt('userId', data['user']['_id']);
+					prefs.setString('name', data['user']['name']);
+					prefs.setString('lastName', data['user']['last_name']);
+					prefs.setString('email', data['user']['email']);
+					prefs.setString('gender', data['user']['gender']);
+				}
 				store.dispatch(SetUser(
 					User(
 						id: data['user']['_id'],
@@ -110,17 +120,9 @@ class _LoginState extends State<Login> {
 							Positioned.fill(
 								child: ListView(
 									children: [
-										const Padding(
-											padding: EdgeInsets.only(top: 30, bottom: 10),
-											child: Text(
-												'LOGO APP',
-												style: TextStyle(
-													fontFamily: 'Futura',
-													fontSize: 30,
-													fontWeight: FontWeight.w700,
-													color: Colors.black
-												),
-											),
+										Padding(
+											padding: const EdgeInsets.only(top: 30, bottom: 10),
+											child: Image.asset('assets/images/logo.jpg'),
 										),
 										const Padding(
 											padding: EdgeInsets.only(bottom: 30),

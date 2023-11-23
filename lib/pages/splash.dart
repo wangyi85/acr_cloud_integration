@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:audio_monitor/models/app_state.dart';
 import 'package:audio_monitor/pages/auth/login.dart';
+import 'package:audio_monitor/pages/home.dart';
 import 'package:audio_monitor/store/actions/device_info_action.dart';
 import 'package:device_imei/device_imei.dart';
 import 'package:device_info/device_info.dart';
@@ -9,6 +10,7 @@ import 'package:device_uuid/device_uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Splash extends StatefulWidget {
 	Splash({super.key});
@@ -20,15 +22,26 @@ class Splash extends StatefulWidget {
 class _SplashState extends State<Splash> {
 	static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 	bool _goNext = false;
+	bool _rememberMe = false;
 
 	@override
 	void initState() {
 		super.initState();
+		getRememberState();
 		Future.delayed(const Duration(seconds: 2), () {
 			setState(() {
 				_goNext = true;
 			});
 		});
+	}
+
+	Future<void> getRememberState() async {
+		var prefs = await SharedPreferences.getInstance();
+		if (prefs.getBool('isRememberMe') == true) {
+			setState(() {
+				_rememberMe = true;
+			});
+		}
 	}
 
 	void getDeviceInfo(store) async {
@@ -55,7 +68,10 @@ class _SplashState extends State<Splash> {
 
 	@override
 	Widget build(BuildContext context) {
-		if (_goNext) return Login();
+		if (_goNext) {
+			if (_rememberMe) return Home();
+			return Login();
+		}
 		return StoreConnector<AppState, AppState>(
 			onInit: (store) => getDeviceInfo(store),
 			converter: (store) => store.state,
@@ -65,15 +81,8 @@ class _SplashState extends State<Splash> {
 					width: double.infinity,
 					height: double.infinity,
 					alignment: Alignment.center,
-					child: const Text(
-						'LOGO APP',
-						style: TextStyle(
-							fontFamily: 'Futura',
-							fontSize: 40,
-							fontWeight: FontWeight.w700,
-							color: Colors.black,
-						),
-					),
+					padding: const EdgeInsets.symmetric(horizontal: 20),
+					child: Image.asset('assets/images/logo.jpg'),
 				),
 			)
 		);

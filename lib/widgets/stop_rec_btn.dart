@@ -9,16 +9,16 @@ class StopRecBtn extends StatelessWidget {
 		return InkWell(
 			onTap: () => onStop(),
 			child: Container(
-				width: 260,
-				height: 260,
+				width: 130,
+				height: 130,
 				decoration: BoxDecoration(
 					color: const Color(0xffffadad),
 					borderRadius: BorderRadius.circular(260)
 				),
 				alignment: Alignment.center,
 				child: Container(
-					width: 200,
-					height: 200,
+					width: 100,
+					height: 100,
 					decoration: BoxDecoration(
 						color: const Color(0xffff5e5e),
 						borderRadius: BorderRadius.circular(200)
@@ -29,7 +29,7 @@ class StopRecBtn extends StatelessWidget {
 						textAlign: TextAlign.center,
 						style: TextStyle(
 							fontFamily: 'Futura',
-							fontSize: 30,
+							fontSize: 20,
 							fontWeight: FontWeight.w500,
 							color: Colors.black
 						),

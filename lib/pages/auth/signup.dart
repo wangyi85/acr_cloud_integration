@@ -138,17 +138,9 @@ class _SignupState extends State<Signup> {
 											Column(
 												crossAxisAlignment: CrossAxisAlignment.start,
 												children: [
-													const Padding(
-														padding: EdgeInsets.only(top: 30, bottom: 10),
-														child: Text(
-															'LOGO APP',
-															style: TextStyle(
-																fontFamily: 'Futura',
-																fontSize: 30,
-																fontWeight: FontWeight.w700,
-																color: Colors.black
-															),
-														),
+													Padding(
+														padding: const EdgeInsets.only(top: 30, bottom: 10),
+														child: Image.asset('assets/images/logo.jpg')
 													),
 													const Padding(
 														padding: EdgeInsets.only(bottom: 30),
@@ -315,6 +307,23 @@ class _SignupState extends State<Signup> {
 															fontSize: 20,
 															fontWeight: FontWeight.w400,
 															color: Colors.white
+														),
+													),
+												)
+											),
+											TextButton(
+												onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => Login())),
+												child: Container(
+													width: double.infinity,
+													alignment: Alignment.center,
+													padding: const EdgeInsets.symmetric(vertical: 10),
+													child: const Text(
+														'Torna al login',
+														style: TextStyle(
+															fontFamily: 'Futura',
+															fontSize: 20,
+															fontWeight: FontWeight.w500,
+															color: Colors.black
 														),
 													),
 												)

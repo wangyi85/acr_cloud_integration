@@ -25,7 +25,7 @@ import 'package:intl/intl.dart';
 @pragma('vm:entry-point')
 void startCallback() {
 	// The setTaskHandler function must be called to handle the task in the background.
-	FlutterForegroundTask.setTaskHandler(MyTaskHandler());
+	FlutterForegroundTask.setTaskHandler(AudioMonitorTaskHandler());
 }
 
 class Home extends StatefulWidget {
@@ -102,7 +102,7 @@ class _HomeState extends State<Home> {
 
 	bool _registerReceivePort(ReceivePort? newReceivePort) {
 		if (newReceivePort == null) {
-		return false;
+			return false;
 		}
 
 		_closeReceivePort();
@@ -212,6 +212,7 @@ class _HomeState extends State<Home> {
 	}
 
 	void startRecord() async {
+		print(ACRCloud.isSetUp);
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		setState(() {
 			_session = ACRCloud.startSession();
@@ -338,20 +339,12 @@ class _HomeState extends State<Home> {
 																		mainAxisAlignment: MainAxisAlignment.center,
 																		mainAxisSize: MainAxisSize.min,
 																		crossAxisAlignment: CrossAxisAlignment.start,
-																		children: const [
+																		children: [
 																			Padding(
-																				padding: EdgeInsets.only(top: 30, bottom: 10),
-																				child: Text(
-																					'LOGO APP',
-																					style: TextStyle(
-																						fontFamily: 'Futura',
-																						fontSize: 30,
-																						fontWeight: FontWeight.w700,
-																						color: Colors.black
-																					),
-																				),
+																				padding: const EdgeInsets.only(top: 30, bottom: 10),
+																				child: Image.asset('assets/images/logo.jpg')
 																			),
-																			Padding(
+																			const Padding(
 																				padding: EdgeInsets.only(bottom: 30),
 																				child: Text(
 																					'Double tap to record in background',
@@ -453,7 +446,7 @@ class _HomeState extends State<Home> {
 	}
 }
 
-class MyTaskHandler extends TaskHandler {
+class AudioMonitorTaskHandler extends TaskHandler {
 	SendPort? _sendPort;
 	int _eventCount = 0;
 	dynamic _session;
@@ -466,9 +459,10 @@ class MyTaskHandler extends TaskHandler {
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
+		print('onStart');
 		_sendPort = sendPort;
 		await askPermissions();
-		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+		
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
 		_imei = await FlutterForegroundTask.getData<String>(key: 'imei') ?? '';
@@ -478,6 +472,9 @@ class MyTaskHandler extends TaskHandler {
 
 	@override
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
+		print('onRepeatEvent');
+		print(sendPort.hashCode);
+		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
 		String result = '';
@@ -495,7 +492,7 @@ class MyTaskHandler extends TaskHandler {
 		}
 		FlutterForegroundTask.updateService(
 			notificationText: 'result: $result',
-			notificationTitle: 'MyTaskHandler'
+			notificationTitle: 'AudioMonitor'
 		);
 		if (result != 'NULL') sendResult(result);
 		sendPort?.send(_eventCount);
@@ -504,7 +501,8 @@ class MyTaskHandler extends TaskHandler {
 
 	@override
 	void onDestroy(DateTime timestamp, SendPort? sendPort) async {
-		if (_session != null) _session.cancel();
+		print(sendPort.hashCode);
+		_session.cancel();
 		print('onDestroy');
 	}
 
