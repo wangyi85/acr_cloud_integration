@@ -56,13 +56,14 @@ public class SwiftFlutterAcrcloudPlugin: NSObject, FlutterPlugin {
       result(true)
     }
         
-    else if call.method == "cancel" {
-        if !self.isListening {
-            result(nil)
-            return
-        }
-        
-        self._client!.stopRecordRec()
+    else if call.method == "cancel" {   
+        self._client!.cancel()
+        self.isListening = false
+        result(true)
+    }
+
+    else if call.method == "destroy" {
+        self._client!.destroy()
         self.isListening = false
         result(true)
     }

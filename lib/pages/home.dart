@@ -295,7 +295,7 @@ class _HomeState extends State<Home> {
 	}
 
 	void runBackgroundService() async {
-		if (_session != null) _session.cancel();
+		_session.destroy();
 		await _startForegroundTask();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);

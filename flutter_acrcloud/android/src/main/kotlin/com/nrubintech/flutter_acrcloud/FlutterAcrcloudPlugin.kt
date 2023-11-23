@@ -87,6 +87,7 @@ class FlutterAcrcloudPlugin: FlutterPlugin, MethodCallHandler, PluginRegistry.Re
     else if (call.method == "destroy") {
       client.release()
       isListening = false
+      result.success(true)
     }
 
     else {
