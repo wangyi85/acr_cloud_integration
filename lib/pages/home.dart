@@ -552,7 +552,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 					'brand': _brand,
 					'acr_result': result,
 					'duration': 10,
-					'recorded_at': DateFormat('dd/MM/yyyy hh:mm').format(DateTime.now())
+					'recorded_at': DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())
 				})
 			));
 			var data = jsonDecode(response.body);
