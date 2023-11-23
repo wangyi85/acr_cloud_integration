@@ -474,6 +474,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		print('onRepeatEvent');
 		print(sendPort.hashCode);
+		print(ACRCloud.isSetUp);
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
@@ -502,7 +503,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	@override
 	void onDestroy(DateTime timestamp, SendPort? sendPort) async {
 		print(sendPort.hashCode);
-		_session.cancel();
+		_session.destroy();
 		print('onDestroy');
 	}
 

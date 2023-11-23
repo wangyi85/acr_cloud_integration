@@ -35,6 +35,11 @@ class ACRCloudSession {
     dispose();
   }
 
+  void destroy() {
+    ACRCloud._channel.invokeMethod('destroy');
+    dispose();
+  }
+
   void dispose() {
     _volume.close();
 

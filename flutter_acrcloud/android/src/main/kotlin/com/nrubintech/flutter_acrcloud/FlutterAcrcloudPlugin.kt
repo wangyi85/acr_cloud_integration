@@ -11,6 +11,7 @@ import com.acrcloud.rec.ACRCloudClient
 import com.acrcloud.rec.ACRCloudConfig
 import com.acrcloud.rec.ACRCloudResult
 import com.acrcloud.rec.IACRCloudListener
+import com.acrcloud.rec.utils.ACRCloudLogger;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -72,14 +73,20 @@ class FlutterAcrcloudPlugin: FlutterPlugin, MethodCallHandler, PluginRegistry.Re
     }
 
     else if (call.method == "cancel") {
-      if (!isListening) {
+      /* if (!isListening) {
         result.error("NOT_LISTENING", "Not listening, so nothing to cancel.", null)
         return
-      }
+      } */
 
-      client.stopRecordToRecognize()
+      client.cancel()
+      /// client.stopRecordToRecognize()
       isListening = false
       result.success(true)
+    }
+
+    else if (call.method == "destroy") {
+      client.release()
+      isListening = false
     }
 
     else {
@@ -103,6 +110,7 @@ class FlutterAcrcloudPlugin: FlutterPlugin, MethodCallHandler, PluginRegistry.Re
     config.protocol = ACRCloudConfig.NetworkProtocol.HTTPS
 
     client = ACRCloudClient()
+    ACRCloudLogger.setLog(true);
     client.initWithConfig(config)
 
     result.success(true)
