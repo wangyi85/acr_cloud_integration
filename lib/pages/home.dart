@@ -21,6 +21,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -179,11 +180,12 @@ class _HomeState extends State<Home> {
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
 
 		// You can save data using the saveData function.
-		await FlutterForegroundTask.saveData(key: 'user_id', value: store.state.user.id);
-		await FlutterForegroundTask.saveData(key: 'uuid', value: store.state.deviceInfo.uuid);
-		await FlutterForegroundTask.saveData(key: 'imei', value: store.state.deviceInfo.imei);
-		await FlutterForegroundTask.saveData(key: 'model', value: store.state.deviceInfo.model);
-		await FlutterForegroundTask.saveData(key: 'brand', value: store.state.deviceInfo.brand);
+		var prefs = await SharedPreferences.getInstance();
+		await FlutterForegroundTask.saveData(key: 'user_id', value: prefs.getInt('user_id') ?? 0);
+		await FlutterForegroundTask.saveData(key: 'uuid', value: prefs.getString('uuid') ?? '');
+		await FlutterForegroundTask.saveData(key: 'imei', value: prefs.getString('imei') ?? '');
+		await FlutterForegroundTask.saveData(key: 'model', value: prefs.getString('model') ?? '');
+		await FlutterForegroundTask.saveData(key: 'brand', value: prefs.getString('brand') ?? '');
 
 		// Register the receivePort before starting the service.
 		final ReceivePort? receivePort = FlutterForegroundTask.receivePort;
@@ -220,7 +222,6 @@ class _HomeState extends State<Home> {
 	}
 
 	void startRecord() async {
-		print(ACRCloud.isSetUp);
 		if (!ACRCloud.isSetUp) await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		setState(() {
 			_session = ACRCloud.startSession();
@@ -264,6 +265,7 @@ class _HomeState extends State<Home> {
 	Future<void> sendResult() async {
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
+		var prefs = await SharedPreferences.getInstance();
 
 		try {
 			var response = (await http.post(Uri.parse('$serverBaseUrl/registerACRResult'), 
@@ -271,11 +273,11 @@ class _HomeState extends State<Home> {
 					'Content-Type': 'application/json; charset=UTF-8'
 				},
 				body: jsonEncode(<String, dynamic>{
-					'user_id': store.state.user.id,
-					'uuid': store.state.deviceInfo.uuid,
-					'imei': store.state.deviceInfo.imei,
-					'model': store.state.deviceInfo.model,
-					'brand': store.state.deviceInfo.brand,
+					'user_id': prefs.getInt('userId') ?? 0,
+					'uuid': prefs.getString('uuid') ?? '',
+					'imei': prefs.getString('imei') ?? '',
+					'model': prefs.getString('model') ?? '',
+					'brand': prefs.getString('brand') ?? '',
 					'acr_result': store.state.result.result,
 					'duration': 10,
 					'recorded_at': DateFormat('dd/MM/yyyy hh:mm').format(DateTime.now())

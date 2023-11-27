@@ -45,21 +45,30 @@ class _SplashState extends State<Splash> {
 	}
 
 	void getDeviceInfo(store) async {
+		var prefs = await SharedPreferences.getInstance();
 		try {
-			store.dispatch(SetIMEI(await DeviceImei().getDeviceImei() ?? ''));
+			var imei = await DeviceImei().getDeviceImei() ?? '';
+			store.dispatch(SetIMEI(imei));
+			prefs.setString('imei', imei);
 		} catch (e) {
 			print(e.toString());
 		}
-		store.dispatch(SetUUID(await DeviceUuid().getUUID() ?? ''));
+		var uuid = await DeviceUuid().getUUID() ?? '';
+		store.dispatch(SetUUID(uuid));
+		prefs.setString('uuid', uuid);
 		try {
 			if (Platform.isAndroid) {
 				var deviceData = await deviceInfoPlugin.androidInfo;
 				store.dispatch(SetDeviceModel(deviceData.model));
+				prefs.setString('model', deviceData.model);
 				store.dispatch(SetBrand(deviceData.brand));
+				prefs.setString('brand', deviceData.brand);
 			} else if (Platform.isIOS) {
 				var deviceData = await deviceInfoPlugin.iosInfo;
 				store.dispatch(SetDeviceModel(deviceData.model));
 				store.dispatch(SetBrand(deviceData.name));
+				prefs.setString('model', deviceData.model);
+				prefs.setString('brand', deviceData.name);
 			}
 		} on PlatformException {
 			print('platform exception');
