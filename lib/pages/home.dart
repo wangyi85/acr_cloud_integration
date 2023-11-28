@@ -21,6 +21,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:phone_state/phone_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
@@ -473,13 +474,14 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	String _imei = '';
 	String _model = '';
 	String _brand = '';
+	PhoneStateStatus status = PhoneStateStatus.NOTHING;
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
 		print('onStart');
 		_sendPort = sendPort;
 		await askPermissions();
-		
+		setStream();
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
 		_imei = await FlutterForegroundTask.getData<String>(key: 'imei') ?? '';
@@ -490,8 +492,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	@override
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		print('onRepeatEvent');
-		print(sendPort.hashCode);
-		print(ACRCloud.isSetUp);
+		if (status == PhoneStateStatus.CALL_INCOMING || status == PhoneStateStatus.CALL_STARTED) return;
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
@@ -572,5 +573,15 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		if ((status.isDenied || status.isPermanentlyDenied) && Platform.isAndroid) {
 			await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage,].request();
 		}
+	}
+
+	void setStream() {
+		PhoneState.phoneStateStream.listen((event) {
+			if (event != null) {
+				print('call status');
+				print(event);
+				status = event;
+			}
+		});
 	}
 }
