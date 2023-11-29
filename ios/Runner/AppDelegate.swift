@@ -12,6 +12,12 @@ import AVFoundation
 	) -> Bool {
 		GeneratedPluginRegistrant.register(with: self)
 
+		let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
+
+		let deviceChannel = FlutterMethodChannel(name: "it.chartmusic.radiomonitor/iOS", binaryMessenger: controller.binaryMessenger)
+
+		prepareMethodHandler(deviceChannel: deviceChannel)
+
 		SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
 		if #available(iOS 10.0, *) {
 			UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
@@ -20,6 +26,22 @@ import AVFoundation
 
 		return super.application(application, didFinishLaunchingWithOptions: launchOptions)
 	}
+
+	private func prepareMethodHandler(deviceChannel: FlutterMethodChannel) {
+        
+        deviceChannel.setMethodCallHandler({
+            (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            
+            if call.method == "startRecording" {                
+                startRecording()
+            }
+            else {
+                result(FlutterMethodNotImplemented)
+                return
+            }
+            
+        })
+    }
 
 	func setupAudioSession() {
         let audioSession = AVAudioSession.sharedInstance()

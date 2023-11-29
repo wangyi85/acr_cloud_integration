@@ -15,6 +15,7 @@ import 'package:audio_monitor/widgets/stop_rec_btn.dart';
 import 'package:audio_monitor/widgets/toaster_message.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_monitor/utils/consts.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_acrcloud/flutter_acrcloud.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -493,6 +494,14 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		print('onRepeatEvent');
 		if (status == PhoneStateStatus.CALL_INCOMING || status == PhoneStateStatus.CALL_STARTED) return;
+		if (status == PhoneStateStatus.CALL_ENDED) {
+			try {
+				const platformChannel = MethodChannel('it.chartmusic.radiomonitor/iOS');
+				await platformChannel.invokeMethod('startRecording');
+			} catch (e) {
+				print(e);
+			}
+		}
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
