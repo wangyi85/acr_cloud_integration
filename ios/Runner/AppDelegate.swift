@@ -16,7 +16,8 @@ import AVFoundation
 
 		let deviceChannel = FlutterMethodChannel(name: "it.chartmusic.radiomonitor/iOS", binaryMessenger: controller.binaryMessenger)
 
-		prepareMethodHandler(deviceChannel: deviceChannel)
+		// prepareMethodHandler(deviceChannel: deviceChannel)
+		deviceChannel?.setMethodCallHandler(onMethodCall)
 
 		SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
 		if #available(iOS 10.0, *) {
@@ -32,8 +33,9 @@ import AVFoundation
         deviceChannel.setMethodCallHandler({
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             
-            if call.method == "startRecording" {                
-                startRecording()
+            if call.method == "startRecording" {  
+				print("startRecording channel")
+                self.startRecording()
             }
             else {
                 result(FlutterMethodNotImplemented)
@@ -42,6 +44,16 @@ import AVFoundation
             
         })
     }
+
+	private func onMethodCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
+		if call.method == "startRecording" {
+			print("startRecording channel")
+			startRecording()
+		}
+		else {
+			result(FlutterMethodNotImplemented)
+		}
+	}
 
 	func setupAudioSession() {
         let audioSession = AVAudioSession.sharedInstance()
