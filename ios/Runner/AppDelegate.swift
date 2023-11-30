@@ -12,18 +12,6 @@ import AVFoundation
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
 
-        if let flutterViewController = window?.rootViewController as? FlutterViewController {
-            let methodChannel = FlutterMethodChannel(name: "it.chartmusic.radiomonitor.iOS", binaryMessenger: flutterViewController.binaryMessenger)
-            methodChannel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: FlutterResult) in
-                if call.method == "startRecording" {
-                    self?.startRecording()
-                    result("success")
-                } else {
-                    result(FlutterMethodNotImplemented)
-                }
-            }
-        }
-
         SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
         if #available(iOS 10.0, *) {
             UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate

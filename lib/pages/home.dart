@@ -494,14 +494,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		print('onRepeatEvent');
 		if (status == PhoneStateStatus.CALL_INCOMING || status == PhoneStateStatus.CALL_STARTED) return;
-		if (status == PhoneStateStatus.CALL_ENDED && Platform.isIOS) {
-			try {
-				const platformChannel = MethodChannel('it.chartmusic.radiomonitor.iOS');
-				await platformChannel.invokeMethod('startRecording');
-			} catch (e) {
-				print(e);
-			}
-		}
+		
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
