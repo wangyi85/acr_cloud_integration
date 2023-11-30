@@ -43,9 +43,9 @@ import AVFoundation
         
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 2,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            AVSampleRateKey: 22050,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
         ]
 
         do {
