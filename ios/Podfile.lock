@@ -1,0 +1,84 @@
+PODS:
+  - background_fetch (1.2.1):
+    - Flutter
+  - device_imei (0.0.3):
+    - Flutter
+  - device_info (0.0.1):
+    - Flutter
+  - device_uuid (0.0.1):
+    - Flutter
+    - XYUUID
+  - Flutter (1.0.0)
+  - flutter_acrcloud (0.0.1):
+    - Flutter
+  - flutter_foreground_task (0.0.1):
+    - Flutter
+  - permission_handler_apple (9.1.1):
+    - Flutter
+  - phone_state (1.0.2):
+    - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - workmanager (0.0.1):
+    - Flutter
+  - XYUUID (1.0.0)
+
+DEPENDENCIES:
+  - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
+  - device_imei (from `.symlinks/plugins/device_imei/ios`)
+  - device_info (from `.symlinks/plugins/device_info/ios`)
+  - device_uuid (from `.symlinks/plugins/device_uuid/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_acrcloud (from `.symlinks/plugins/flutter_acrcloud/ios`)
+  - flutter_foreground_task (from `.symlinks/plugins/flutter_foreground_task/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - phone_state (from `.symlinks/plugins/phone_state/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - workmanager (from `.symlinks/plugins/workmanager/ios`)
+
+SPEC REPOS:
+  trunk:
+    - XYUUID
+
+EXTERNAL SOURCES:
+  background_fetch:
+    :path: ".symlinks/plugins/background_fetch/ios"
+  device_imei:
+    :path: ".symlinks/plugins/device_imei/ios"
+  device_info:
+    :path: ".symlinks/plugins/device_info/ios"
+  device_uuid:
+    :path: ".symlinks/plugins/device_uuid/ios"
+  Flutter:
+    :path: Flutter
+  flutter_acrcloud:
+    :path: ".symlinks/plugins/flutter_acrcloud/ios"
+  flutter_foreground_task:
+    :path: ".symlinks/plugins/flutter_foreground_task/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+  phone_state:
+    :path: ".symlinks/plugins/phone_state/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+  workmanager:
+    :path: ".symlinks/plugins/workmanager/ios"
+
+SPEC CHECKSUMS:
+  background_fetch: 896944864b038d2837fc750d470e9841e1e6a363
+  device_imei: 06bea5160991fbb7aba7f2e7267a37f6b616c514
+  device_info: d7d233b645a32c40dfdc212de5cf646ca482f175
+  device_uuid: 1673ecd99e9ae7a1508120f378158c85ecd708a6
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_acrcloud: 8dc6ee574321bc08390c1e79900aad5ef683248d
+  flutter_foreground_task: 21ef182ab0a29a3005cc72cd70e5f45cb7f7f817
+  permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
+  phone_state: a32989709fb2a95f342877a7966402df058a9519
+  shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
+  workmanager: 0afdcf5628bbde6924c21af7836fed07b42e30e6
+  XYUUID: 9a2483143d14fc5204b619042ca65073df9fbd88
+
+PODFILE CHECKSUM: 101dd2c8597d0edd369af30fa30d06e3f6f69331
+
+COCOAPODS: 1.14.2
