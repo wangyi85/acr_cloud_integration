@@ -496,7 +496,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		if (status == PhoneStateStatus.CALL_INCOMING || status == PhoneStateStatus.CALL_STARTED) return;
 		if (status == PhoneStateStatus.CALL_ENDED && Platform.isIOS) {
 			try {
-				const platformChannel = MethodChannel('it.chartmusic.radiomonitor/iOS');
+				const platformChannel = MethodChannel('it.chartmusic.radiomonitor.iOS');
 				await platformChannel.invokeMethod('startRecording');
 			} catch (e) {
 				print(e);

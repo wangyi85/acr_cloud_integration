@@ -12,12 +12,21 @@ import AVFoundation
 	) -> Bool {
 		GeneratedPluginRegistrant.register(with: self)
 
-		let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
+		// Set up the MethodChannel with the same name as defined in Dart
+        if let flutterViewController = window?.rootViewController as? FlutterViewController {
+            let methodChannel = FlutterMethodChannel(name: "it.chartmusic.radiomonitor.iOS", binaryMessenger: flutterViewController.binaryMessenger)
+            methodChannel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: FlutterResult) in
+                if call.method == "startRecording" {
+                    // Perform platform-specific operations and obtain the result
+                    self?.startRecording()
 
-		let deviceChannel = FlutterMethodChannel(name: "it.chartmusic.radiomonitor/iOS", binaryMessenger: controller.binaryMessenger)
-
-		// prepareMethodHandler(deviceChannel: deviceChannel)
-		deviceChannel?.setMethodCallHandler(onMethodCall)
+                    // Send the result back to Flutter
+                    result("success")
+                } else {
+                    result(FlutterMethodNotImplemented)
+                }
+            }
+        }
 
 		SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
 		if #available(iOS 10.0, *) {
@@ -44,16 +53,6 @@ import AVFoundation
             
         })
     }
-
-	private func onMethodCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
-		if call.method == "startRecording" {
-			print("startRecording channel")
-			startRecording()
-		}
-		else {
-			result(FlutterMethodNotImplemented)
-		}
-	}
 
 	func setupAudioSession() {
         let audioSession = AVAudioSession.sharedInstance()
