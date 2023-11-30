@@ -183,7 +183,7 @@ class _HomeState extends State<Home> {
 
 		// You can save data using the saveData function.
 		var prefs = await SharedPreferences.getInstance();
-		await FlutterForegroundTask.saveData(key: 'user_id', value: prefs.getInt('user_id') ?? 0);
+		await FlutterForegroundTask.saveData(key: 'user_id', value: prefs.getInt('userId') ?? 0);
 		await FlutterForegroundTask.saveData(key: 'uuid', value: prefs.getString('uuid') ?? '');
 		await FlutterForegroundTask.saveData(key: 'imei', value: prefs.getString('imei') ?? '');
 		await FlutterForegroundTask.saveData(key: 'model', value: prefs.getString('model') ?? '');
