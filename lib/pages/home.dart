@@ -188,6 +188,9 @@ class _HomeState extends State<Home> {
 		await FlutterForegroundTask.saveData(key: 'imei', value: prefs.getString('imei') ?? '');
 		await FlutterForegroundTask.saveData(key: 'model', value: prefs.getString('model') ?? '');
 		await FlutterForegroundTask.saveData(key: 'brand', value: prefs.getString('brand') ?? '');
+		await FlutterForegroundTask.saveData(key: 'longitude', value: prefs.getString('longitude') ?? '');
+		await FlutterForegroundTask.saveData(key: 'latitude', value: prefs.getString('latitude') ?? '');
+		await FlutterForegroundTask.saveData(key: 'locationAddress', value: prefs.getString('locationAddress') ?? '');
 
 		// Register the receivePort before starting the service.
 		final ReceivePort? receivePort = FlutterForegroundTask.receivePort;
@@ -280,6 +283,9 @@ class _HomeState extends State<Home> {
 					'imei': prefs.getString('imei') ?? '',
 					'model': prefs.getString('model') ?? '',
 					'brand': prefs.getString('brand') ?? '',
+					'longitude': prefs.getString('longitude') ?? '',
+					'latitude': prefs.getString('latitude') ?? '',
+					'locationAddress': prefs.getString('locationAddress') ?? '',
 					'acr_result': store.state.result.result,
 					'duration': 10,
 					'recorded_at': DateFormat('dd/MM/yyyy hh:mm').format(DateTime.now())
@@ -475,6 +481,9 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	String _imei = '';
 	String _model = '';
 	String _brand = '';
+	String _longitude = '';
+	String _latitude = '';
+	String _locationAddress = '';
 	PhoneStateStatus status = PhoneStateStatus.NOTHING;
 
 	@override
@@ -488,6 +497,9 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		_imei = await FlutterForegroundTask.getData<String>(key: 'imei') ?? '';
 		_model = await FlutterForegroundTask.getData<String>(key: 'model') ?? '';
 		_brand = await FlutterForegroundTask.getData<String>(key: 'brand') ?? '';
+		_longitude = await FlutterForegroundTask.getData<String>(key: 'longitude') ?? '';
+		_latitude = await FlutterForegroundTask.getData<String>(key: 'latitude') ?? '';
+		_locationAddress = await FlutterForegroundTask.getData<String>(key: 'locationAddress') ?? '';
 	}
 
 	@override
@@ -555,6 +567,9 @@ class AudioMonitorTaskHandler extends TaskHandler {
 					'imei': _imei,
 					'model': _model,
 					'brand': _brand,
+					'longitude': _longitude,
+					'latitude': _latitude,
+					'locationAddress': _locationAddress,
 					'acr_result': result,
 					'duration': 10,
 					'recorded_at': DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())

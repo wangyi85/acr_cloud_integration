@@ -10,6 +10,8 @@ import 'package:device_uuid/device_uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Splash extends StatefulWidget {
@@ -44,8 +46,66 @@ class _SplashState extends State<Splash> {
 		}
 	}
 
+	Future<bool> _handleLocationPermission() async {
+		bool serviceEnabled;
+		LocationPermission permission;
+		
+		serviceEnabled = await Geolocator.isLocationServiceEnabled();
+		if (!serviceEnabled) {
+			ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+				content: Text('Location services are disabled. Please enable the services')));
+			return false;
+		}
+		permission = await Geolocator.checkPermission();
+		if (permission == LocationPermission.denied) {
+			permission = await Geolocator.requestPermission();
+			if (permission == LocationPermission.denied) {   
+				ScaffoldMessenger.of(context).showSnackBar(
+					const SnackBar(content: Text('Location permissions are denied')));
+				return false;
+			}
+		}
+		if (permission == LocationPermission.deniedForever) {
+			ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+				content: Text('Location permissions are permanently denied, we cannot request permissions.')));
+			return false;
+		}
+		return true;
+	}
+
+	Future<String> _getAddressFromLatLng(Position position) async {
+		if (position == null) return '';
+		try {
+			List<Placemark> placeMarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+		Placemark place = placeMarks[0];
+		return '${place.street}, ${place.subLocality}, ${place.subAdministrativeArea}, ${place.postalCode}';
+		} catch (e) {
+			print(e);
+			return '';
+		}
+	}
+
+	Future<Position?> _getCurrentPosition() async {
+		final hasPermission = await _handleLocationPermission();
+		if (!hasPermission) return null;
+		try {
+			final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+			return position;
+		} catch (e) {
+			print(e);
+			return null;
+		}
+	}
+
 	void getDeviceInfo(store) async {
 		var prefs = await SharedPreferences.getInstance();
+		final location = await _getCurrentPosition();
+		if (location != null) {
+			prefs.setString('longitude', location.longitude.toString());
+			prefs.setString('latitude', location.latitude.toString());
+			final address = await _getAddressFromLatLng(location);
+			prefs.setString('locationAddress', address);
+		}
 		try {
 			var imei = await DeviceImei().getDeviceImei() ?? '';
 			store.dispatch(SetIMEI(imei));

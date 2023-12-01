@@ -20,6 +20,8 @@ dependencies:
   flutter_foreground_task: ^6.1.2
   flutter_launcher_icons: ^0.13.1
   flutter_redux: ^0.10.0
+  geocoding: ^2.1.1
+  geolocator: ^10.1.0
   http: ^0.13.6
   intl: ^0.18.1
   permission_handler: ^11.0.1
