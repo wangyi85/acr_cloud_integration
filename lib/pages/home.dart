@@ -54,6 +54,12 @@ class _HomeState extends State<Home> {
 				final newReceivePort = FlutterForegroundTask.receivePort;
 				_registerReceivePort(newReceivePort);
 			}
+
+			var prefs = await SharedPreferences.getInstance();
+			var isRememberMe = prefs.getBool('isRememberMe') ?? false;
+			if (isRememberMe) {
+				runBackgroundService();
+			}
 		});
 	}
 
