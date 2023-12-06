@@ -26,10 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location when in the background.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>Questa app usa la tua posizione in background</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Questa app usa la tua posizione quando in uso.</string>
+	<string>This app needs access to location when open.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Necessario uso del microfono</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
@@ -39,7 +41,6 @@
 		<string>audio</string>
 		<string>fetch</string>
 		<string>location</string>
-		<string>processing</string>
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>
@@ -62,9 +63,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to location when in the background.</string>
 </dict>
 </plist>
