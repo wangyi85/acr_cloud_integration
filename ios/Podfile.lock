@@ -13,6 +13,10 @@ PODS:
     - Flutter
   - flutter_foreground_task (0.0.1):
     - Flutter
+  - geocoding_ios (1.0.5):
+    - Flutter
+  - geolocator_apple (1.2.0):
+    - Flutter
   - permission_handler_apple (9.1.1):
     - Flutter
   - phone_state (1.0.2):
@@ -32,6 +36,8 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_acrcloud (from `.symlinks/plugins/flutter_acrcloud/ios`)
   - flutter_foreground_task (from `.symlinks/plugins/flutter_foreground_task/ios`)
+  - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
+  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - phone_state (from `.symlinks/plugins/phone_state/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -56,6 +62,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_acrcloud/ios"
   flutter_foreground_task:
     :path: ".symlinks/plugins/flutter_foreground_task/ios"
+  geocoding_ios:
+    :path: ".symlinks/plugins/geocoding_ios/ios"
+  geolocator_apple:
+    :path: ".symlinks/plugins/geolocator_apple/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   phone_state:
@@ -73,6 +83,8 @@ SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_acrcloud: 8dc6ee574321bc08390c1e79900aad5ef683248d
   flutter_foreground_task: 21ef182ab0a29a3005cc72cd70e5f45cb7f7f817
+  geocoding_ios: a389ea40f6f548de6e63006a2e31bf66ff80769a
+  geolocator_apple: cc556e6844d508c95df1e87e3ea6fa4e58c50401
   permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
   phone_state: a32989709fb2a95f342877a7966402df058a9519
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
