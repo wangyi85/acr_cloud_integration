@@ -1,6 +1,4 @@
 PODS:
-  - background_fetch (1.2.1):
-    - Flutter
   - device_imei (0.0.3):
     - Flutter
   - device_info (0.0.1):
@@ -12,6 +10,10 @@ PODS:
   - flutter_acrcloud (0.0.1):
     - Flutter
   - flutter_foreground_task (0.0.1):
+    - Flutter
+  - flutter_local_notifications (0.0.1):
+    - Flutter
+  - flutter_timezone (0.0.1):
     - Flutter
   - geocoding_ios (1.0.5):
     - Flutter
@@ -29,13 +31,14 @@ PODS:
   - XYUUID (1.0.0)
 
 DEPENDENCIES:
-  - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
   - device_imei (from `.symlinks/plugins/device_imei/ios`)
   - device_info (from `.symlinks/plugins/device_info/ios`)
   - device_uuid (from `.symlinks/plugins/device_uuid/ios`)
   - Flutter (from `Flutter`)
   - flutter_acrcloud (from `.symlinks/plugins/flutter_acrcloud/ios`)
   - flutter_foreground_task (from `.symlinks/plugins/flutter_foreground_task/ios`)
+  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_timezone (from `.symlinks/plugins/flutter_timezone/ios`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -48,8 +51,6 @@ SPEC REPOS:
     - XYUUID
 
 EXTERNAL SOURCES:
-  background_fetch:
-    :path: ".symlinks/plugins/background_fetch/ios"
   device_imei:
     :path: ".symlinks/plugins/device_imei/ios"
   device_info:
@@ -62,6 +63,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_acrcloud/ios"
   flutter_foreground_task:
     :path: ".symlinks/plugins/flutter_foreground_task/ios"
+  flutter_local_notifications:
+    :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_timezone:
+    :path: ".symlinks/plugins/flutter_timezone/ios"
   geocoding_ios:
     :path: ".symlinks/plugins/geocoding_ios/ios"
   geolocator_apple:
@@ -76,13 +81,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/workmanager/ios"
 
 SPEC CHECKSUMS:
-  background_fetch: 896944864b038d2837fc750d470e9841e1e6a363
   device_imei: 06bea5160991fbb7aba7f2e7267a37f6b616c514
   device_info: d7d233b645a32c40dfdc212de5cf646ca482f175
   device_uuid: 1673ecd99e9ae7a1508120f378158c85ecd708a6
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_acrcloud: 8dc6ee574321bc08390c1e79900aad5ef683248d
   flutter_foreground_task: 21ef182ab0a29a3005cc72cd70e5f45cb7f7f817
+  flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
+  flutter_timezone: ffb07bdad3c6276af8dada0f11978d8a1f8a20bb
   geocoding_ios: a389ea40f6f548de6e63006a2e31bf66ff80769a
   geolocator_apple: cc556e6844d508c95df1e87e3ea6fa4e58c50401
   permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6

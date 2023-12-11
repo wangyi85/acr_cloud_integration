@@ -6,7 +6,8 @@ import flutter_local_notifications
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
     var audioRecorder: AVAudioRecorder?
-    
+    var isBackground: Bool = false
+
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -21,6 +22,23 @@ import flutter_local_notifications
         if #available(iOS 10.0, *) {
             UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
             setupAudioSession()
+            let flutterViewController: FlutterViewController = window?.rootViewController as! FlutterViewController
+
+            let channel = FlutterMethodChannel(name: "app_state", binaryMessenger: flutterViewController.binaryMessenger)
+            channel.setMethodCallHandler({
+                [weak self] (call: FlutterMethodCall, result: FlutterResult) -> Void in
+                // Handle method calls from Dart here
+                if call.method == "appState" {
+                    let state = call.arguments as! String
+                    print ("APPSTATE")
+                    print (state)
+                    if state == "background" {
+                        self?.isBackground = true
+                    } else if state == "stopped" {
+                        self?.isBackground = false
+                    }
+                }
+            })
         }
 
         // Observe audio interruptions
@@ -42,7 +60,23 @@ import flutter_local_notifications
             print("Error setting up audio session: \(error.localizedDescription)")
         }
     }
-    
+    @objc func startRecordingIfNeeded() {
+        print ("isBackground?")
+        print(isBackground)
+        if (isBackground == true) {
+            
+            startRecording()
+        }
+        else {
+            stopRecording()
+        }
+    }
+    @objc func stopRecording() {
+        if let audioRecorder = audioRecorder, audioRecorder.isRecording {
+            audioRecorder.stop()
+        }
+    }
+
     @objc func startRecording() {
         let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
         
@@ -94,7 +128,8 @@ import flutter_local_notifications
     }
     
     override func applicationWillResignActive(_ application: UIApplication) {
-        startRecording()
+        startRecordingIfNeeded()
+     
     }
 
 

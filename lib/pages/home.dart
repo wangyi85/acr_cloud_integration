@@ -23,8 +23,19 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:phone_state/phone_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter/services.dart';
 @pragma('vm:entry-point')
+
+const MethodChannel _channel = MethodChannel('app_state');
+
+Future<void> sendAppState(String state) async {
+  try {
+    await _channel.invokeMethod('appState', state);
+  } on PlatformException catch (e) {
+    print('Error sending app state: $e');
+  }
+}
+
 void startCallback() {
 	// The setTaskHandler function must be called to handle the task in the background.
 	FlutterForegroundTask.setTaskHandler(AudioMonitorTaskHandler());
@@ -311,6 +322,7 @@ class _HomeState extends State<Home> {
 	}
 
 	void stopRecordBackground() async {
+    sendAppState('stopped');
 		await _stopForegroundTask();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
@@ -326,6 +338,8 @@ class _HomeState extends State<Home> {
 				_session.cancel();
 			}
 		}
+    sendAppState('background');
+
 		await _startForegroundTask();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
