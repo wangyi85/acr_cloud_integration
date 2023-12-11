@@ -1,6 +1,7 @@
 import UIKit
 import Flutter
 import AVFoundation
+import flutter_local_notifications
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -11,6 +12,10 @@ import AVFoundation
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
+
+        FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
+            GeneratedPluginRegistrant.register(with: registry)
+        }
 
         SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback(registerPlugins)
         if #available(iOS 10.0, *) {
