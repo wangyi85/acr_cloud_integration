@@ -169,26 +169,6 @@ class _LoginState extends State<Login> {
 												],
 											),
 										),
-										Padding(
-											padding: const EdgeInsets.symmetric(vertical: 10),
-											child: Row(
-												mainAxisAlignment: MainAxisAlignment.start,
-												mainAxisSize: MainAxisSize.min,
-												children: const [
-													Icon(Icons.check_box_outlined),
-													SizedBox(width: 10,),
-													Text(
-														'Ricordami',
-														style: TextStyle(
-															fontFamily: 'Futura',
-															fontSize: 16,
-															fontWeight: FontWeight.w400,
-															color: Color(0xff424956)
-														),
-													)
-												],
-											),
-										),
 										TextButton(
 											onPressed: onLogin,
 											// onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => Home())),
