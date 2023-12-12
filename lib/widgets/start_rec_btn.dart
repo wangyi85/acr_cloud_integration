@@ -25,7 +25,7 @@ class StartRecBtn extends StatelessWidget {
 					),
 					alignment: Alignment.center,
 					child: const Text(
-						'START\nREC',
+						'AVVIA',
 						textAlign: TextAlign.center,
 						style: TextStyle(
 							fontFamily: 'Futura',

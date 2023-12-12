@@ -25,7 +25,7 @@ class StopRecBackBtn extends StatelessWidget {
 					),
 					alignment: Alignment.center,
 					child: const Text(
-						'STOP\nREC',
+						'STOP',
 						textAlign: TextAlign.center,
 						style: TextStyle(
 							fontFamily: 'Futura',

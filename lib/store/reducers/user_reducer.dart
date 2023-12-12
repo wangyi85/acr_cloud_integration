@@ -5,9 +5,8 @@ User userReducer(User state, dynamic action) {
 	if (action is SetUser) {
 		state.id = action.user.id;
 		state.email = action.user.email;
-		state.name = action.user.name;
-		state.lastName = action.user.lastName;
 		state.gender = action.user.gender;
+		state.homeAddress = action.user.homeAddress;
 		return state;
 	}
 	return state;

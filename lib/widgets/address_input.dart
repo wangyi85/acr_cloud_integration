@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class NameInput extends StatefulWidget {
+class AddressInput extends StatefulWidget {
 	Function onChanged;
-	NameInput({super.key, required this.onChanged});
+	AddressInput({super.key, required this.onChanged});
 
 	@override
-	_NameInputState createState() => _NameInputState();
+	_AddressInputState createState() => _AddressInputState();
 }
 
-class _NameInputState extends State<NameInput> {
+class _AddressInputState extends State<AddressInput> {
 	@override
 	Widget build(BuildContext context) {
 		return TextField(
@@ -21,7 +21,7 @@ class _NameInputState extends State<NameInput> {
 			decoration: InputDecoration(
 				filled: true,
 				fillColor: const Color(0xfff3f4f6),
-				prefixIcon: const Icon(Icons.person_outlined),
+				prefixIcon: const Icon(Icons.location_on_outlined),
 				border: OutlineInputBorder(
 					borderSide: BorderSide.none,
 					borderRadius: BorderRadius.circular(5)
@@ -31,7 +31,7 @@ class _NameInputState extends State<NameInput> {
 					borderSide: BorderSide.none
 				),
 			),
-			keyboardType: TextInputType.name,
+			keyboardType: TextInputType.streetAddress,
 			onChanged: (value) => widget.onChanged(value),
 		);
 	}

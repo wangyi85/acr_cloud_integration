@@ -26,7 +26,6 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
 	String _email = '';
 	String _password = '';
-	bool _rememberMe = false;
 
 	void onFieldChanged(field, value) {
 		switch (field) {
@@ -77,22 +76,18 @@ class _LoginState extends State<Login> {
 			));
 			var data = jsonDecode(response.body);
 			if (data['status'] == 'success') {
-				if (_rememberMe) {
-					var prefs = await SharedPreferences.getInstance();
-					prefs.setBool('isRememberMe', true);
-					prefs.setInt('userId', data['user']['_id']);
-					prefs.setString('name', data['user']['name']);
-					prefs.setString('lastName', data['user']['last_name']);
-					prefs.setString('email', data['user']['email']);
-					prefs.setString('gender', data['user']['gender']);
-				}
+				var prefs = await SharedPreferences.getInstance();
+				prefs.setBool('isRememberMe', true);
+				prefs.setInt('userId', data['user']['_id']);
+				prefs.setString('email', data['user']['email']);
+				prefs.setString('gender', data['user']['gender']);
+				prefs.setString('homeAddress', data['user']['home_address'] ?? '');
 				store.dispatch(SetUser(
 					User(
 						id: data['user']['_id'],
-						name: data['user']['name'],
-						lastName: data['user']['last_name'],
 						email: data['user']['email'],
-						gender: data['user']['gender']
+						gender: data['user']['gender'],
+						homeAddress: data['user']['home_address'] ?? ''
 					)
 				));
 				if (context.mounted) Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
@@ -174,30 +169,15 @@ class _LoginState extends State<Login> {
 												],
 											),
 										),
-										InkWell(
-											onTap: () {
-												setState(() {
-													_rememberMe = !_rememberMe;
-												});
-											},
+										Padding(
+											padding: const EdgeInsets.symmetric(vertical: 10),
 											child: Row(
 												mainAxisAlignment: MainAxisAlignment.start,
 												mainAxisSize: MainAxisSize.min,
-												children: [
-													Checkbox(
-														fillColor: const MaterialStatePropertyAll(Colors.transparent),
-														activeColor: Colors.black,
-														checkColor: Colors.black,
-														side: MaterialStateBorderSide.resolveWith((states) => const BorderSide(color: Colors.black)),
-														visualDensity: VisualDensity.compact,
-														value: _rememberMe,
-														onChanged: (value) {
-															setState(() {
-																_rememberMe = value!;
-															});
-														},
-													),
-													const Text(
+												children: const [
+													Icon(Icons.check_box_outlined),
+													SizedBox(width: 10,),
+													Text(
 														'Ricordami',
 														style: TextStyle(
 															fontFamily: 'Futura',

@@ -78,7 +78,7 @@ Future<void> main() async {
 		recordStatus: RecordStatus(isBackground: false, isRunning: false),
 		result: Result(''),
 		deviceInfo: DeviceInfo(uuid: '', imei: '', model: '', brand: ''),
-		user: User(id: 0, name: '', lastName: '', email: '', gender: '')
+		user: User(id: 0, email: '', gender: '', homeAddress: '')
 	));
 	WidgetsFlutterBinding.ensureInitialized();
 

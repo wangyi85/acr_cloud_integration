@@ -7,7 +7,7 @@ import 'package:audio_monitor/store/actions/user_action.dart';
 import 'package:audio_monitor/utils/consts.dart';
 import 'package:audio_monitor/widgets/age_input.dart';
 import 'package:audio_monitor/widgets/email_input.dart';
-import 'package:audio_monitor/widgets/name_input.dart';
+import 'package:audio_monitor/widgets/address_input.dart';
 import 'package:audio_monitor/widgets/password_input.dart';
 import 'package:audio_monitor/widgets/toaster_message.dart';
 import 'package:email_validator/email_validator.dart';
@@ -21,25 +21,14 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
-	String _name = '';
-	String _lastName = '';
 	String _age = '0';
 	String _email = '';
 	String _password = '';
 	String _gender = 'Select';
+	String _homeAddress = '';
 
 	void onFieldChanged(field, value) {
 		switch (field) {
-			case 'name':
-				setState(() {
-					_name = value;
-				});
-				break;
-			case 'lastname':
-				setState(() {
-					_lastName = value;
-				});
-				break;
 			case 'age':
 				setState(() {
 					_age = value;
@@ -55,22 +44,23 @@ class _SignupState extends State<Signup> {
 					_password = value;
 				});
 				break;
+			case 'homeaddress':
+				setState(() {
+					_homeAddress = value;
+				});
+				break;
 			default:
 				break;
 		}
 	}
 
 	void onSignup() async {
-		if (_name == '') {
-			ScaffoldMessenger.of(context).showSnackBar(ToasterMessage.showErrorMessage('Please insert your name'));
-			return;
-		}
-		else if (_lastName == '') {
-			ScaffoldMessenger.of(context).showSnackBar(ToasterMessage.showErrorMessage('Please insert your last name'));
-			return;
-		}
-		else if (_email == '') {
+		if (_email == '') {
 			ScaffoldMessenger.of(context).showSnackBar(ToasterMessage.showErrorMessage('Please insert your email address'));
+			return;
+		}
+		else if (_homeAddress == '') {
+			ScaffoldMessenger.of(context).showSnackBar(ToasterMessage.showErrorMessage('Please insert your home full address'));
 			return;
 		}
 		else if (_gender == 'Select') {
@@ -98,17 +88,16 @@ class _SignupState extends State<Signup> {
 					'Content-Type': 'application/json; charset=UTF-8'
 				},
 				body: jsonEncode(<String, dynamic>{
-					'name': _name,
-					'last_name': _lastName,
 					'gender': _gender,
 					'age': _age,
 					'email': _email,
-					'password': _password
+					'password': _password,
+					'home_address': _homeAddress
 				})
 			));
 			var data = jsonDecode(response.body);
 			if (data['status'] == 'success') {
-				store.dispatch(SetUser(User(id: 0, name: _name, lastName: _lastName, email: _email, gender: _gender)));
+				store.dispatch(SetUser(User(id: 0, email: _email, gender: _gender, homeAddress: _homeAddress)));
 				if (context.mounted) Navigator.push(context, MaterialPageRoute(builder: (context) => Login()));
 			} else {
 				if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(ToasterMessage.showErrorMessage(data['comment']));
@@ -160,44 +149,6 @@ class _SignupState extends State<Signup> {
 															crossAxisAlignment: CrossAxisAlignment.start,
 															children: [
 																const Text(
-																	'Name',
-																	style: TextStyle(
-																		fontFamily: 'Futura',
-																		fontSize: 20,
-																		fontWeight: FontWeight.w500,
-																		color: Color(0xFF424956)
-																	),
-																),
-																const SizedBox(height: 10,),
-																NameInput(onChanged: (value) => onFieldChanged('name', value),)
-															],
-														),
-													),
-													Padding(
-														padding: const EdgeInsets.symmetric(vertical: 15),
-														child: Column(
-															crossAxisAlignment: CrossAxisAlignment.start,
-															children: [
-																const Text(
-																	'Last Name',
-																	style: TextStyle(
-																		fontFamily: 'Futura',
-																		fontSize: 20,
-																		fontWeight: FontWeight.w500,
-																		color: Color(0xFF424956)
-																	),
-																),
-																const SizedBox(height: 10,),
-																NameInput(onChanged: (value) => onFieldChanged('lastname', value))
-															],
-														),
-													),
-													Padding(
-														padding: const EdgeInsets.symmetric(vertical: 15),
-														child: Column(
-															crossAxisAlignment: CrossAxisAlignment.start,
-															children: [
-																const Text(
 																	'Email',
 																	style: TextStyle(
 																		fontFamily: 'Futura',
@@ -208,6 +159,25 @@ class _SignupState extends State<Signup> {
 																),
 																const SizedBox(height: 10,),
 																EmailInput(onChanged: (value) => onFieldChanged('email', value),)
+															],
+														),
+													),
+													Padding(
+														padding: const EdgeInsets.symmetric(vertical: 15),
+														child: Column(
+															crossAxisAlignment: CrossAxisAlignment.start,
+															children: [
+																const Text(
+																	'Home Full Address',
+																	style: TextStyle(
+																		fontFamily: 'Futura',
+																		fontSize: 20,
+																		fontWeight: FontWeight.w500,
+																		color: Color(0xFF424956)
+																	),
+																),
+																const SizedBox(height: 10,),
+																AddressInput(onChanged: (value) => onFieldChanged('homeaddress', value))
 															],
 														),
 													),
