@@ -24,18 +24,8 @@ import 'package:intl/intl.dart';
 import 'package:phone_state/phone_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+
 @pragma('vm:entry-point')
-
-const MethodChannel _channel = MethodChannel('app_state');
-
-Future<void> sendAppState(String state) async {
-  try {
-    await _channel.invokeMethod('appState', state);
-  } on PlatformException catch (e) {
-    print('Error sending app state: $e');
-  }
-}
-
 void startCallback() {
 	// The setTaskHandler function must be called to handle the task in the background.
 	FlutterForegroundTask.setTaskHandler(AudioMonitorTaskHandler());
@@ -51,6 +41,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 	ReceivePort? _receivePort;
 	dynamic _session;
+	final MethodChannel _channel = const MethodChannel('app_state');
+
 
 	@override
 	void initState() {
@@ -167,8 +159,8 @@ class _HomeState extends State<Home> {
 				channelId: 'foreground_service',
 				channelName: 'Foreground Service Notification',
 				channelDescription: 'This notification appears when the foreground service is running.',
-				channelImportance: NotificationChannelImportance.LOW,
-				priority: NotificationPriority.LOW,
+				channelImportance: NotificationChannelImportance.HIGH,
+				priority: NotificationPriority.HIGH,
 				iconData: const NotificationIconData(
 					resType: ResourceType.mipmap,
 					resPrefix: ResourcePrefix.ic,
@@ -321,8 +313,18 @@ class _HomeState extends State<Home> {
 		return FlutterForegroundTask.stopService();
 	}
 
+	Future<void> sendAppState(String state) async {
+		try {
+			await _channel.invokeMethod('appState', state);
+		} on PlatformException catch (e) {
+			print('Error sending app state: $e');
+		}
+	}
+
 	void stopRecordBackground() async {
-    sendAppState('stopped');
+		if (Platform.isIOS) {
+			sendAppState('stopped');
+		}
 		await _stopForegroundTask();
 		dynamic store;
 		if (context.mounted) store = StoreProvider.of<AppState>(context);
@@ -338,7 +340,9 @@ class _HomeState extends State<Home> {
 				_session.cancel();
 			}
 		}
-    sendAppState('background');
+		if (Platform.isIOS) {
+			sendAppState('background');
+		}
 
 		await _startForegroundTask();
 		dynamic store;
