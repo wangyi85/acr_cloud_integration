@@ -43,7 +43,6 @@ class _HomeState extends State<Home> {
 	dynamic _session;
 	final MethodChannel _channel = const MethodChannel('app_state');
 
-
 	@override
 	void initState() {
 		super.initState();
@@ -508,6 +507,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	String _latitude = '';
 	String _locationAddress = '';
 	PhoneStateStatus status = PhoneStateStatus.NOTHING;
+	// final MethodChannel _currentAppChannel = const MethodChannel('RunningApp');
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
@@ -550,6 +550,13 @@ class AudioMonitorTaskHandler extends TaskHandler {
 			notificationText: 'result: $result',
 			notificationTitle: 'AudioMonitor'
 		);
+		// try {
+		// 	final String result = await _currentAppChannel.invokeMethod('getRunningApps');
+		// 	print('Result from Channel: $result');
+		// } on PlatformException catch (e) {
+		// 	print('Error: ${e.message}');
+		// }
+		
 		if (result != 'NULL') sendResult(result);
 		sendPort?.send(_eventCount);
 		_eventCount ++;

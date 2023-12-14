@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:audio_monitor/models/app_state.dart';
 import 'package:audio_monitor/models/models.dart';
@@ -67,6 +68,10 @@ Future<void> _configureLocalTimeZone() async {
 	tz.initializeTimeZones();
 	final String? timeZoneName = await FlutterTimezone.getLocalTimezone();
 	tz.setLocalLocation(tz.getLocation(timeZoneName!));
+}
+
+void _isolateMain(RootIsolateToken rootIsolateToken) async {
+	BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 }
 Future<void> main() async {
 	HttpOverrides.global = MyHttpOverrides();
@@ -172,7 +177,9 @@ Future<void> main() async {
 	await _requestPermissions();
 	_configureDidReceiveLocalNotificationSubject();
 	_configureSelectNotificationSubject();
-	await _scheduleDailyTenAMNotification();
+	await _scheduleDailyEightAMNotification();
+	RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
+  	Isolate.spawn(_isolateMain, rootIsolateToken);
   	runApp(StoreProvider(store: store, child: const MainApp()));
 }
 
@@ -230,9 +237,9 @@ class MyHttpOverrides extends HttpOverrides{
 	}
 }
 
-tz.TZDateTime _nextInstanceOfTenAM() {
+tz.TZDateTime _nextInstanceOfEightAM() {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 10);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 8);
     if (scheduledDate.isBefore(now)) {
       	scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
@@ -287,12 +294,12 @@ void _configureSelectNotificationSubject() {
     });
 }
 
-Future<void> _scheduleDailyTenAMNotification() async {
+Future<void> _scheduleDailyEightAMNotification() async {
     await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
         'audio_monitor',
         'Please tap to run audio_monitor',
-        _nextInstanceOfTenAM(),
+        _nextInstanceOfEightAM(),
         const NotificationDetails(
           	android: AndroidNotificationDetails(
 				'audio_monitor_channel_id', 'audio_monitor_channel_name',
