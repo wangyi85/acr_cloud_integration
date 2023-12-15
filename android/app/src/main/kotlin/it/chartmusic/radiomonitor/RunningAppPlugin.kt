@@ -13,7 +13,7 @@ import android.app.ActivityManager.RunningTaskInfo
 import android.content.Context
 import java.util.*
 
-class RunningApp: FlutterPlugin, MethodCallHandler {
+class RunningAppPlugin: FlutterPlugin, MethodCallHandler {
     private val CHANNEL = "RunningApp"
     private lateinit var channel : MethodChannel
     private lateinit var context : Context

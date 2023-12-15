@@ -105,25 +105,25 @@ Future<void> main() async {
 			actions: <DarwinNotificationAction>[
 				DarwinNotificationAction.plain('id_1', 'Action 1'),
 				DarwinNotificationAction.plain(
-				'id_2',
-				'Action 2 (destructive)',
-				options: <DarwinNotificationActionOption>{
-					DarwinNotificationActionOption.destructive,
-				},
+					'id_2',
+					'Action 2 (destructive)',
+					options: <DarwinNotificationActionOption>{
+						DarwinNotificationActionOption.destructive,
+					},
 				),
 				DarwinNotificationAction.plain(
-				navigationActionId,
-				'Action 3 (foreground)',
-				options: <DarwinNotificationActionOption>{
-					DarwinNotificationActionOption.foreground,
-				},
+					navigationActionId,
+					'Action 3 (foreground)',
+					options: <DarwinNotificationActionOption>{
+						DarwinNotificationActionOption.foreground,
+					},
 				),
 				DarwinNotificationAction.plain(
-				'id_4',
-				'Action 4 (auth required)',
-				options: <DarwinNotificationActionOption>{
-					DarwinNotificationActionOption.authenticationRequired,
-				},
+					'id_4',
+					'Action 4 (auth required)',
+					options: <DarwinNotificationActionOption>{
+						DarwinNotificationActionOption.authenticationRequired,
+					},
 				),
 			],
 			options: <DarwinNotificationCategoryOption>{
@@ -134,14 +134,14 @@ Future<void> main() async {
 	final DarwinInitializationSettings initializationSettingsDarwin = DarwinInitializationSettings(
 		requestAlertPermission: false,
 		requestBadgePermission: false,
-		requestSoundPermission: false,
+		requestSoundPermission: true,
 		onDidReceiveLocalNotification: (int id, String? title, String? body, String? payload) async {
 			didReceiveLocalNotificationStream.add(
 				ReceivedNotification(
-				id: id,
-				title: title,
-				body: body,
-				payload: payload,
+					id: id,
+					title: title,
+					body: body,
+					payload: payload,
 				),
 			);
 		},

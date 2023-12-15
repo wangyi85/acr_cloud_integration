@@ -158,13 +158,14 @@ class _HomeState extends State<Home> {
 				channelId: 'foreground_service',
 				channelName: 'Foreground Service Notification',
 				channelDescription: 'This notification appears when the foreground service is running.',
-				channelImportance: NotificationChannelImportance.HIGH,
-				priority: NotificationPriority.HIGH,
+				channelImportance: NotificationChannelImportance.LOW,
+				priority: NotificationPriority.LOW,
 				iconData: const NotificationIconData(
 					resType: ResourceType.mipmap,
 					resPrefix: ResourcePrefix.ic,
 					name: 'launcher',
 				),
+				playSound: true,
 				buttons: [
 					// const NotificationButton(id: 'sendButton', text: 'Send'),
 					// const NotificationButton(id: 'testButton', text: 'Test'),
@@ -172,7 +173,7 @@ class _HomeState extends State<Home> {
 			),
 			iosNotificationOptions: const IOSNotificationOptions(
 				showNotification: true,
-				playSound: false,
+				playSound: true,
 			),
 			foregroundTaskOptions: const ForegroundTaskOptions(
 				interval: 60000,
@@ -507,12 +508,13 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	String _latitude = '';
 	String _locationAddress = '';
 	PhoneStateStatus status = PhoneStateStatus.NOTHING;
-	// final MethodChannel _currentAppChannel = const MethodChannel('RunningApp');
+	late MethodChannel _currentAppChannel;
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
 		print('onStart');
 		_sendPort = sendPort;
+		_currentAppChannel = const MethodChannel('RunningApp');
 		await askPermissions();
 		setStream();
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
