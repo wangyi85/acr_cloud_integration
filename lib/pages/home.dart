@@ -261,6 +261,7 @@ class _HomeState extends State<Home> {
 		
 		if (result == null || result.status.code != 0) {
 			store.dispatch(SetResult('NULL'));
+			sendResult();
 		} else {
 			if (result.metadata!.customFiles.isNotEmpty) {
 				dynamic customFile = result.metadata!.customFiles.first;
@@ -559,7 +560,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		// 	print('Error: ${e.message}');
 		// }
 		
-		if (result != 'NULL') sendResult(result);
+		if (result != '') sendResult(result);
 		sendPort?.send(_eventCount);
 		_eventCount ++;
 	}
