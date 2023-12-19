@@ -160,8 +160,8 @@ class _HomeState extends State<Home> {
 				channelId: 'foreground_service',
 				channelName: 'Foreground Service Notification',
 				channelDescription: 'This notification appears when the foreground service is running.',
-				channelImportance: NotificationChannelImportance.LOW,
-				priority: NotificationPriority.LOW,
+				channelImportance: NotificationChannelImportance.HIGH,
+				priority: NotificationPriority.HIGH,
 				iconData: const NotificationIconData(
 					resType: ResourceType.mipmap,
 					resPrefix: ResourcePrefix.ic,
