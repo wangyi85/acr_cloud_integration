@@ -208,14 +208,15 @@ class _HomeState extends State<Home> {
 		if (!isRegistered) {
 			print('Failed to register receivePort!');
 			return false;
+/// The above code is checking if a Flutter foreground service is already running. If it is running, it restarts the service. If it is not running, it starts the service with a notification title and text. It also specifies a callback function called "startCallback" to be executed when the service is started.
 		}
 
 		if (await FlutterForegroundTask.isRunningService) {
 			return FlutterForegroundTask.restartService();
 		} else {
 			return FlutterForegroundTask.startService(
-				notificationTitle: 'Foreground Service is running',
-				notificationText: 'Tap to return to the app',
+			notificationTitle: 'RadioMonitor è in esecuzione',
+				notificationText: 'Tocca per tornare all\'applicazione',
 				callback: startCallback,
 			);
 		}
@@ -398,7 +399,7 @@ class _HomeState extends State<Home> {
 																			const Padding(
 																				padding: EdgeInsets.only(bottom: 30),
 																				child: Text(
-																					'Double tap to record in background',
+																'Tocca lo schermo due volte per avviare',
 																					style: TextStyle(
 																						fontFamily: 'Futura',
 																						fontSize: 16,
@@ -429,7 +430,7 @@ class _HomeState extends State<Home> {
 																): Container(),
 																const SizedBox(height: 5,),
 																Text(
-																	'Match Result: ${state.result.result}',
+																	'Matching ${state.result.result}',
 																	style: const TextStyle(
 																		fontFamily: 'Futura',
 																		fontSize: 18,
@@ -442,7 +443,7 @@ class _HomeState extends State<Home> {
 														state.recordStatus.isRunning ? 
 															state.recordStatus.isBackground ?
 																Positioned(
-																	top: 130,
+																	top: 180,
 																	child: Row(
 																		mainAxisAlignment: MainAxisAlignment.center,
 																		mainAxisSize: MainAxisSize.min,
@@ -450,10 +451,10 @@ class _HomeState extends State<Home> {
 																			Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
 																			SizedBox(width: 5,),
 																			Text(
-																				'BACKGROUND RECOGNITION',
+																				'BACKGROUND MODE ON',
 																				style: TextStyle(
 																					fontFamily: 'Futura',
-																					fontSize: 18,
+																					fontSize: 17,
 																					color: Colors.black,
 																					fontWeight: FontWeight.w400
 																				),
@@ -462,7 +463,7 @@ class _HomeState extends State<Home> {
 																	)
 																)
 															: Positioned(
-																top: 130,
+																top: 180,
 																child: Row(
 																	mainAxisAlignment: MainAxisAlignment.center,
 																	mainAxisSize: MainAxisSize.min,
@@ -470,10 +471,10 @@ class _HomeState extends State<Home> {
 																		Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
 																		SizedBox(width: 5,),
 																		Text(
-																			'FOREGROUND RECOGNITION',
+																			'FOREGROUND MODE ON',
 																			style: TextStyle(
 																				fontFamily: 'Futura',
-																				fontSize: 18,
+																				fontSize: 17,
 																				color: Colors.black,
 																				fontWeight: FontWeight.w400
 																			),
