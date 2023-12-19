@@ -298,7 +298,7 @@ Future<void> _scheduleDailyEightAMNotification() async {
     await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
         'audio_monitor',
-        'Please tap to run audio_monitor',
+        'Ricordati di avviare RadioMonitor',
         _nextInstanceOfEightAM(),
         const NotificationDetails(
           	android: AndroidNotificationDetails(
