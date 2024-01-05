@@ -177,7 +177,7 @@ Future<void> main() async {
 	await _requestPermissions();
 	_configureDidReceiveLocalNotificationSubject();
 	_configureSelectNotificationSubject();
-	await _scheduleDailyEightAMNotification();
+	await _scheduleDailySevenAMNotification();
 	RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
   	Isolate.spawn(_isolateMain, rootIsolateToken);
   	runApp(StoreProvider(store: store, child: const MainApp()));
@@ -237,9 +237,9 @@ class MyHttpOverrides extends HttpOverrides{
 	}
 }
 
-tz.TZDateTime _nextInstanceOfEightAM() {
+tz.TZDateTime _nextInstanceOfSevenAM() {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 8);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 7);
     if (scheduledDate.isBefore(now)) {
       	scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
@@ -294,12 +294,12 @@ void _configureSelectNotificationSubject() {
     });
 }
 
-Future<void> _scheduleDailyEightAMNotification() async {
+Future<void> _scheduleDailySevenAMNotification() async {
     await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
         'audio_monitor',
         'Ricordati di avviare RadioMonitor',
-        _nextInstanceOfEightAM(),
+        _nextInstanceOfSevenAM(),
         const NotificationDetails(
           	android: AndroidNotificationDetails(
 				'audio_monitor_channel_id', 'audio_monitor_channel_name',

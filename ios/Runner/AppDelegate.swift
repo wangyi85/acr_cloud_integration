@@ -50,7 +50,7 @@ import flutter_local_notifications
     func setupAudioSession() {
         let audioSession = AVAudioSession.sharedInstance()
         do {
-    try AVAudioSession.sharedInstance().setCategory(.playAndRecord, options: [.duckOthers,  .allowBluetoothA2DP, .mixWithOthers])
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, options: [.duckOthers,  .allowBluetoothA2DP, .mixWithOthers])
             try audioSession.setActive(true)
         } catch {
             print("Error setting up audio session: \(error.localizedDescription)")
@@ -90,7 +90,7 @@ import flutter_local_notifications
         ]
 
         do {
-try AVAudioSession.sharedInstance().setCategory(.playAndRecord, options: [.duckOthers,  .allowBluetoothA2DP, .mixWithOthers])
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, options: [.duckOthers,  .allowBluetoothA2DP, .mixWithOthers])
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
             audioRecorder?.record()
         } catch {

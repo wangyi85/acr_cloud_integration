@@ -191,36 +191,36 @@ class _LoginState extends State<Login> {
 									],
 								)
 							),
-							Positioned(
-								bottom: 0,
-								child: Row(
-									mainAxisAlignment: MainAxisAlignment.center,
-									mainAxisSize: MainAxisSize.min,
-									children: [
-										const Text(
-											'Non Hai un account?',
-											style: TextStyle(
-												fontFamily: 'Futura',
-												fontSize: 16,
-												fontWeight: FontWeight.w400,
-												color: Colors.black
-											),
-										),
-										TextButton(
-											onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => Signup())),
-											child: const Text(
-												'Registrati',
-												style: TextStyle(
-													fontFamily: 'Futura',
-													fontSize: 16,
-													fontWeight: FontWeight.w500,
-													color: Colors.black
-												),
-											)
-										)
-									],
-								)
-							)
+							// Positioned(
+							// 	bottom: 0,
+							// 	child: Row(
+							// 		mainAxisAlignment: MainAxisAlignment.center,
+							// 		mainAxisSize: MainAxisSize.min,
+							// 		children: [
+							// 			const Text(
+							// 				'Non Hai un account?',
+							// 				style: TextStyle(
+							// 					fontFamily: 'Futura',
+							// 					fontSize: 16,
+							// 					fontWeight: FontWeight.w400,
+							// 					color: Colors.black
+							// 				),
+							// 			),
+							// 			TextButton(
+							// 				onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => Signup())),
+							// 				child: const Text(
+							// 					'Registrati',
+							// 					style: TextStyle(
+							// 						fontFamily: 'Futura',
+							// 						fontSize: 16,
+							// 						fontWeight: FontWeight.w500,
+							// 						color: Colors.black
+							// 					),
+							// 				)
+							// 			)
+							// 		],
+							// 	)
+							// )
 						],
 					),
 				),

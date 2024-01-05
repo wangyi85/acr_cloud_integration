@@ -25,6 +25,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:audio_session/audio_session.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -520,6 +521,24 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		_currentAppChannel = const MethodChannel('RunningApp');
 		await askPermissions();
 		await requestPhonePermission();
+		AudioSession.instance.then((audioSession) async {
+			await audioSession.configure(const AudioSessionConfiguration(
+				avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+				avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
+				avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+				avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+				avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+				androidAudioAttributes: AndroidAudioAttributes(
+					contentType: AndroidAudioContentType.speech,
+					flags: AndroidAudioFlags.none,
+					usage: AndroidAudioUsage.voiceCommunication
+				),
+				androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+				androidWillPauseWhenDucked: true
+			));
+
+			_handleInterruptions(audioSession);
+		});
 		setStream();
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
@@ -605,6 +624,37 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	void onNotificationPressed() {
 		FlutterForegroundTask.launchApp('/resume-route');
 		_sendPort?.send('onNotificationPressed');
+	}
+
+	void _handleInterruptions(AudioSession audioSession) {
+		audioSession.interruptionEventStream.listen((event) {
+			if (event.begin) {
+				switch (event.type) {
+					case AudioInterruptionType.duck:
+						print('interruption begin => audio is duck');
+						break;
+					case AudioInterruptionType.pause:
+						print('interruption begin => audio is paused');
+						break;
+					case AudioInterruptionType.unknown:
+						print('interruption begin => unknown interruption');
+						break;
+				}
+			} else {
+				audioSession.setActive(true);
+				switch (event.type) {
+					case AudioInterruptionType.duck:
+						print('interruption end => audio is duck');
+						break;
+					case AudioInterruptionType.pause:
+						print('interruption end => audio is paused');
+						break;
+					case AudioInterruptionType.unknown:
+						print('interruption end => unknown interruption');
+						break;
+				}
+			}
+		});
 	}
 
 	Future<void> sendResult(result) async {

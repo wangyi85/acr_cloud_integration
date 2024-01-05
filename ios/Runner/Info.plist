@@ -63,13 +63,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	  <key>NSCalendarsUsageDescription</key>
-	  <string>We need access to your calendar to schedule events within the app.</string>
-	  <key>NSAppleMusicUsageDescription</key>
-	  <string>This app requires access to your Apple Music library to provide music-related features.</string>
-	  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	  <string>This app uses your location to provide location-based services whether it's in use or in the background.</string>
-	  <key>CADisableMinimumFrameDurationOnPhone</key>
-	  <true/>
+	<key>NSCalendarsUsageDescription</key>
+	<string>We need access to your calendar to schedule events within the app.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app requires access to your Apple Music library to provide music-related features.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location to provide location-based services whether it's in use or in the background.</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 </dict>
 </plist>
