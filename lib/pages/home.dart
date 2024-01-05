@@ -43,7 +43,6 @@ class _HomeState extends State<Home> {
 	ReceivePort? _receivePort;
 	dynamic _session;
 	final MethodChannel _channel = const MethodChannel('app_state');
-	late var prefs;
 
 	@override
 	void initState() {
@@ -58,8 +57,7 @@ class _HomeState extends State<Home> {
 				_registerReceivePort(newReceivePort);
 			}
 
-			prefs = await SharedPreferences.getInstance();
-			prefs.setString('ACR_Result', '');
+			var prefs = await SharedPreferences.getInstance();
 			var isRememberMe = prefs.getBool('isRememberMe') ?? false;
 			if (isRememberMe) {
 				runBackgroundService();
@@ -209,7 +207,7 @@ class _HomeState extends State<Home> {
 		if (!isRegistered) {
 			print('Failed to register receivePort!');
 			return false;
-/// The above code is checking if a Flutter foreground service is already running. If it is running, it restarts the service. If it is not running, it starts the service with a notification title and text. It also specifies a callback function called "startCallback" to be executed when the service is started.
+		/// The above code is checking if a Flutter foreground service is already running. If it is running, it restarts the service. If it is not running, it starts the service with a notification title and text. It also specifies a callback function called "startCallback" to be executed when the service is started.
 		}
 
 		if (await FlutterForegroundTask.isRunningService) {
@@ -574,9 +572,6 @@ class AudioMonitorTaskHandler extends TaskHandler {
 			notificationText: 'result: $result',
 			notificationTitle: 'AudioMonitor'
 		);
-		var prefs = await SharedPreferences.getInstance();
-		prefs.setString('ACR_Result', result);
-		print(prefs.getString('ACR_Result'));
 		// try {
 		// 	final String result = await _currentAppChannel.invokeMethod('getRunningApps');
 		// 	print('Result from Channel: $result');
