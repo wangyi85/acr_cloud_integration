@@ -9,7 +9,6 @@ import 'package:audio_monitor/pages/source.dart';
 import 'package:audio_monitor/store/actions/record_status_action.dart';
 import 'package:audio_monitor/store/actions/result_action.dart';
 import 'package:audio_monitor/widgets/bottombar.dart';
-import 'package:audio_monitor/widgets/start_rec_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_back_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_btn.dart';
 import 'package:audio_monitor/widgets/toaster_message.dart';
@@ -44,6 +43,7 @@ class _HomeState extends State<Home> {
 	ReceivePort? _receivePort;
 	dynamic _session;
 	final MethodChannel _channel = const MethodChannel('app_state');
+	late var prefs;
 
 	@override
 	void initState() {
@@ -58,7 +58,8 @@ class _HomeState extends State<Home> {
 				_registerReceivePort(newReceivePort);
 			}
 
-			var prefs = await SharedPreferences.getInstance();
+			prefs = await SharedPreferences.getInstance();
+			prefs.setString('ACR_Result', '');
 			var isRememberMe = prefs.getBool('isRememberMe') ?? false;
 			if (isRememberMe) {
 				runBackgroundService();
@@ -160,22 +161,22 @@ class _HomeState extends State<Home> {
 				channelId: 'foreground_service',
 				channelName: 'Foreground Service Notification',
 				channelDescription: 'This notification appears when the foreground service is running.',
-				channelImportance: NotificationChannelImportance.HIGH,
-				priority: NotificationPriority.HIGH,
+				channelImportance: NotificationChannelImportance.LOW,
+				priority: NotificationPriority.LOW,
 				iconData: const NotificationIconData(
 					resType: ResourceType.mipmap,
 					resPrefix: ResourcePrefix.ic,
 					name: 'launcher',
 				),
-				playSound: true,
+				playSound: false,
+				visibility: NotificationVisibility.VISIBILITY_SECRET,
 				buttons: [
 					// const NotificationButton(id: 'sendButton', text: 'Send'),
 					// const NotificationButton(id: 'testButton', text: 'Test'),
 				],
 			),
 			iosNotificationOptions: const IOSNotificationOptions(
-				showNotification: true,
-				playSound: true,
+				showNotification: false,
 			),
 			foregroundTaskOptions: const ForegroundTaskOptions(
 				interval: 60000,
@@ -399,7 +400,7 @@ class _HomeState extends State<Home> {
 																			const Padding(
 																				padding: EdgeInsets.only(bottom: 30),
 																				child: Text(
-																'Tocca lo schermo due volte per avviare',
+																					'Tocca lo schermo due volte per avviare',
 																					style: TextStyle(
 																						fontFamily: 'Futura',
 																						fontSize: 16,
@@ -412,7 +413,7 @@ class _HomeState extends State<Home> {
 																	),
 																),
 																const SizedBox(height: 100,),
-																!state.recordStatus.isRunning ? StartRecBtn(onRecord: startRecord,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecordBackground,) : StopRecBtn(onStop: stopRecord,),
+																!state.recordStatus.isRunning ? Container(width: 130, height: 130,) : state.recordStatus.isBackground ? StopRecBackBtn(onStop: stopRecordBackground,) : StopRecBtn(onStop: stopRecord,),
 																const SizedBox(height: 15,),
 																(state.recordStatus.isRunning && !state.recordStatus.isBackground && _session != null) ? StreamBuilder(
 																	stream: _session.volumeStream,
@@ -520,6 +521,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		_sendPort = sendPort;
 		_currentAppChannel = const MethodChannel('RunningApp');
 		await askPermissions();
+		await requestPhonePermission();
 		setStream();
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
@@ -534,7 +536,12 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	@override
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		print('onRepeatEvent');
+		print('phone status: $status');
 		if (status == PhoneStateStatus.CALL_INCOMING || status == PhoneStateStatus.CALL_STARTED) return;
+		print('after checking phone status');
+		if (status == PhoneStateStatus.CALL_ENDED) {
+			// Do something to reactive recording like on iOS
+		}
 		
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
@@ -567,6 +574,9 @@ class AudioMonitorTaskHandler extends TaskHandler {
 			notificationText: 'result: $result',
 			notificationTitle: 'AudioMonitor'
 		);
+		var prefs = await SharedPreferences.getInstance();
+		prefs.setString('ACR_Result', result);
+		print(prefs.getString('ACR_Result'));
 		// try {
 		// 	final String result = await _currentAppChannel.invokeMethod('getRunningApps');
 		// 	print('Result from Channel: $result');
@@ -636,6 +646,21 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		var status = await Permission.microphone.status;
 		if ((status.isDenied || status.isPermanentlyDenied) && Platform.isAndroid) {
 			await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage,].request();
+		}
+	}
+
+	Future<bool> requestPhonePermission() async {
+		var status = await Permission.phone.request();
+
+		switch (status) {
+			case PermissionStatus.denied:
+			case PermissionStatus.restricted:
+			case PermissionStatus.limited:
+			case PermissionStatus.permanentlyDenied:
+				return false;
+			case PermissionStatus.provisional:
+			case PermissionStatus.granted:
+				return true;
 		}
 	}
 
