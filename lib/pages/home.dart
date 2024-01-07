@@ -421,18 +421,21 @@ class _HomeState extends State<Home> {
 																				padding: const EdgeInsets.only(top: 30, bottom: 10),
 																				child: Image.asset('assets/images/logo.jpg')
 																			),
-																			const Padding(
-																				padding: EdgeInsets.only(bottom: 30),
-																				child: Text(
-																					'Tocca lo schermo due volte per avviare',
-																					style: TextStyle(
-																						fontFamily: 'Futura',
-																						fontSize: 16,
-																						fontWeight: FontWeight.w500,
-																						color: Colors.black
-																					),
-																				),
-																			)
+																			      Padding(
+                                            padding: EdgeInsets.only(bottom: 30),
+                                            child: (!state.recordStatus.isRunning && !state.recordStatus.isBackground)
+                                                ? Text(
+                                                    'Tocca lo schermo due volte per avviare il monitoraggio!',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Futura',
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w500,
+                                                      color: Color.fromARGB(255, 182, 0, 0),
+                                                    ),
+                                                     textAlign: TextAlign.center,
+                                                  )
+                                                : Container(),
+                                          ),
 																		],
 																	),
 																),
@@ -455,7 +458,7 @@ class _HomeState extends State<Home> {
 																): Container(),
 																const SizedBox(height: 5,),
 																Text(
-																	'Matching ${state.result.result}',
+																	'${state.result.result}',
 																	style: const TextStyle(
 																		fontFamily: 'Futura',
 																		fontSize: 18,
@@ -476,12 +479,12 @@ class _HomeState extends State<Home> {
 																			Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
 																			SizedBox(width: 5,),
 																			Text(
-																				'BACKGROUND MODE ON',
+																				'MONITORAGGIO IN CORSO',
 																				style: TextStyle(
 																					fontFamily: 'Futura',
 																					fontSize: 17,
-																					color: Colors.black,
-																					fontWeight: FontWeight.w400
+																					color: Color.fromARGB(255, 145, 1, 1),
+																					fontWeight: FontWeight.w500
 																				),
 																			)
 																		],
