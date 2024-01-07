@@ -45,9 +45,34 @@ class _HomeState extends State<Home> {
 	dynamic _session;
 	final MethodChannel _channel = const MethodChannel('app_state');
 
+  // Add a function to handle phone call interruptions
+  void _handlePhoneCall(PhoneStateStatus phoneState) {
+    print ("STATO TELEFONO");
+    print (phoneState);
+    switch (phoneState) {
+      case PhoneStateStatus.CALL_INCOMING:
+      case PhoneStateStatus.CALL_STARTED:
+        // Pause the service or stop the recording when the call starts
+        stopRecord(); // Implement this function to pause or stop recording
+        break;
+      case PhoneStateStatus.CALL_ENDED:
+        // Resume your app's functionality or restart the service after the call ends
+        runBackgroundService(); // Implement this function to restart the service
+        break;
+      default:
+        break;
+    }
+  }
+
 	@override
 	void initState() {
 		super.initState();
+    PhoneState.phoneStateStream.listen((event) {
+    if (event != null) {
+      print("HANDLING CALL!L!L!");
+      _handlePhoneCall(event);
+    }
+    });
 		WidgetsBinding.instance.addPostFrameCallback((_) async {
 			await _requestPermissionForAndroid();
 			_initForegroundTask();
@@ -520,7 +545,6 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		_sendPort = sendPort;
 		_currentAppChannel = const MethodChannel('RunningApp');
 		await askPermissions();
-		await requestPhonePermission();
 		AudioSession.instance.then((audioSession) async {
 			await audioSession.configure(const AudioSessionConfiguration(
 				avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
@@ -548,6 +572,8 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		_longitude = await FlutterForegroundTask.getData<String>(key: 'longitude') ?? '';
 		_latitude = await FlutterForegroundTask.getData<String>(key: 'latitude') ?? '';
 		_locationAddress = await FlutterForegroundTask.getData<String>(key: 'locationAddress') ?? '';
+		await requestPhonePermission();
+
 	}
 
 	@override
@@ -563,6 +589,32 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
+    var errorStatus = 0;
+    if (_acrResult.status.code == 2004) {        
+      //problem with fp generation ACR on Android 
+       print("TRY TO FIX PROBLEM AFTER CALL");          
+       // FlutterForegroundTask.stopService();
+
+       errorStatus = 1;  
+       if (await FlutterForegroundTask.isRunningService) {
+          print ("isRunning restart service");
+          await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+          _session = ACRCloud.startSession();
+          _acrResult = await _session.destroy;
+  
+          if (await FlutterForegroundTask.restartService()){
+            print ("SERVICE RESTARTED");
+            return;
+          }
+        } else {
+          print ("isNOTRunning start service");
+          FlutterForegroundTask.startService(
+          notificationTitle: 'RadioMonitor è di nuovo in esecuzione',
+            notificationText: 'Tocca per tornare all\'applicazione',
+            callback: startCallback,
+          );
+        }
+    }
 		String result = '';
 		if (_eventCount % 5 == 0) {
 			print('get location');
@@ -598,7 +650,8 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		// 	print('Error: ${e.message}');
 		// }
 		
-		if (result != '') sendResult(result);
+	  if ((result != '')&&(errorStatus == 0)) sendResult(result);
+ 
 		sendPort?.send(_eventCount);
 		_eventCount ++;
 	}
