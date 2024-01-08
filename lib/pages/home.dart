@@ -20,7 +20,6 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:phone_state/phone_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
@@ -188,9 +187,6 @@ class _HomeState extends State<Home> {
 	}
 
 	Future<bool> _startForegroundTask() async {
-		dynamic store;
-		if (context.mounted) store = StoreProvider.of<AppState>(context);
-
 		// You can save data using the saveData function.
 		var prefs = await SharedPreferences.getInstance();
 		await FlutterForegroundTask.saveData(key: 'user_id', value: prefs.getInt('userId') ?? 0);
@@ -215,7 +211,7 @@ class _HomeState extends State<Home> {
 			return FlutterForegroundTask.restartService();
 		} else {
 			return FlutterForegroundTask.startService(
-			notificationTitle: 'RadioMonitor è in esecuzione',
+				notificationTitle: 'RadioMonitor è in esecuzione',
 				notificationText: 'Tocca per tornare all\'applicazione',
 				callback: startCallback,
 			);
@@ -511,8 +507,8 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	String _longitude = '';
 	String _latitude = '';
 	String _locationAddress = '';
-	PhoneStateStatus status = PhoneStateStatus.NOTHING;
 	late MethodChannel _currentAppChannel;
+	late AudioSession audioSession;
 
 	@override
 	void onStart(DateTime timestamp, SendPort? sendPort) async {
@@ -520,26 +516,7 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		_sendPort = sendPort;
 		_currentAppChannel = const MethodChannel('RunningApp');
 		await askPermissions();
-		await requestPhonePermission();
-		AudioSession.instance.then((audioSession) async {
-			await audioSession.configure(const AudioSessionConfiguration(
-				avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-				avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
-				avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-				avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
-				avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-				androidAudioAttributes: AndroidAudioAttributes(
-					contentType: AndroidAudioContentType.speech,
-					flags: AndroidAudioFlags.none,
-					usage: AndroidAudioUsage.voiceCommunication
-				),
-				androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-				androidWillPauseWhenDucked: true
-			));
 
-			_handleInterruptions(audioSession);
-		});
-		setStream();
 		_userId = await FlutterForegroundTask.getData<int>(key: 'user_id') ?? 0;
 		_uuid = await FlutterForegroundTask.getData<String>(key: 'uuid') ?? '';
 		_imei = await FlutterForegroundTask.getData<String>(key: 'imei') ?? '';
@@ -548,22 +525,41 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		_longitude = await FlutterForegroundTask.getData<String>(key: 'longitude') ?? '';
 		_latitude = await FlutterForegroundTask.getData<String>(key: 'latitude') ?? '';
 		_locationAddress = await FlutterForegroundTask.getData<String>(key: 'locationAddress') ?? '';
+
+		audioSession = await AudioSession.instance;
+		await audioSession.configure(const AudioSessionConfiguration(
+			avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+			avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.duckOthers,
+			avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+			avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+			avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+			androidAudioAttributes: AndroidAudioAttributes(
+				contentType: AndroidAudioContentType.speech,
+				flags: AndroidAudioFlags.none,
+				usage: AndroidAudioUsage.voiceCommunication
+			),
+			androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+			androidWillPauseWhenDucked: true
+		));
+		_handleInterruptions(audioSession);
 	}
 
 	@override
 	void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
 		print('onRepeatEvent');
-		print('phone status: $status');
-		if (status == PhoneStateStatus.CALL_INCOMING || status == PhoneStateStatus.CALL_STARTED) return;
-		print('after checking phone status');
-		if (status == PhoneStateStatus.CALL_ENDED) {
-			// Do something to reactive recording like on iOS
-		}
 		
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
 		String result = '';
+		print("CUSTOM STREAM");
+		print(_acrResult.status.code);
+		if (_acrResult.status.code == 2004) {
+			// Problem with fp generation ACR on Android
+			print('TRY TO FIX');
+			FlutterForegroundTask.stopService();
+			FlutterForegroundTask.restartService();
+		}
 		if (_eventCount % 5 == 0) {
 			print('get location');
 			final location = await _getCurrentPosition();
@@ -628,29 +624,15 @@ class AudioMonitorTaskHandler extends TaskHandler {
 
 	void _handleInterruptions(AudioSession audioSession) {
 		audioSession.interruptionEventStream.listen((event) {
+			print(event);
 			if (event.begin) {
 				switch (event.type) {
 					case AudioInterruptionType.duck:
-						print('interruption begin => audio is duck');
+						// Here you could lower the volume
 						break;
 					case AudioInterruptionType.pause:
-						print('interruption begin => audio is paused');
-						break;
 					case AudioInterruptionType.unknown:
-						print('interruption begin => unknown interruption');
-						break;
-				}
-			} else {
-				audioSession.setActive(true);
-				switch (event.type) {
-					case AudioInterruptionType.duck:
-						print('interruption end => audio is duck');
-						break;
-					case AudioInterruptionType.pause:
-						print('interruption end => audio is paused');
-						break;
-					case AudioInterruptionType.unknown:
-						print('interruption end => unknown interruption');
+						// Here you should pause your audio
 						break;
 				}
 			}
@@ -692,31 +674,6 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		if ((status.isDenied || status.isPermanentlyDenied) && Platform.isAndroid) {
 			await [Permission.microphone, Permission.location, Permission.locationAlways, Permission.locationWhenInUse, Permission.phone, Permission.storage,].request();
 		}
-	}
-
-	Future<bool> requestPhonePermission() async {
-		var status = await Permission.phone.request();
-
-		switch (status) {
-			case PermissionStatus.denied:
-			case PermissionStatus.restricted:
-			case PermissionStatus.limited:
-			case PermissionStatus.permanentlyDenied:
-				return false;
-			case PermissionStatus.provisional:
-			case PermissionStatus.granted:
-				return true;
-		}
-	}
-
-	void setStream() {
-		PhoneState.phoneStateStream.listen((event) {
-			if (event != null) {
-				print('call status');
-				print(event);
-				status = event;
-			}
-		});
 	}
 
 	Future<bool> _handleLocationPermission() async {
