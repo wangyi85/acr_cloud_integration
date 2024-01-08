@@ -392,18 +392,21 @@ class _HomeState extends State<Home> {
 																				padding: const EdgeInsets.only(top: 30, bottom: 10),
 																				child: Image.asset('assets/images/logo.jpg')
 																			),
-																			const Padding(
+																			Padding(
 																				padding: EdgeInsets.only(bottom: 30),
-																				child: Text(
-																					'Tocca lo schermo due volte per avviare',
-																					style: TextStyle(
+																				child: (!state.recordStatus.isRunning && !state.recordStatus.isBackground)
+																					? const Text(
+																						'Tocca lo schermo due volte per avviare il monitoraggio!',
+																						style: TextStyle(
 																						fontFamily: 'Futura',
 																						fontSize: 16,
 																						fontWeight: FontWeight.w500,
-																						color: Colors.black
-																					),
-																				),
-																			)
+																						color: Color.fromARGB(255, 182, 0, 0),
+																						),
+																						textAlign: TextAlign.center,
+																					)
+																					: Container(),
+																			),
 																		],
 																	),
 																),
@@ -426,7 +429,7 @@ class _HomeState extends State<Home> {
 																): Container(),
 																const SizedBox(height: 5,),
 																Text(
-																	'Matching ${state.result.result}',
+																	'${state.result.result}',
 																	style: const TextStyle(
 																		fontFamily: 'Futura',
 																		fontSize: 18,
@@ -447,12 +450,12 @@ class _HomeState extends State<Home> {
 																			Icon(Icons.warning_amber_outlined, size: 18, color: Colors.black,),
 																			SizedBox(width: 5,),
 																			Text(
-																				'BACKGROUND MODE ON',
+																				'MONITORAGGIO IN CORSO',
 																				style: TextStyle(
 																					fontFamily: 'Futura',
 																					fontSize: 17,
-																					color: Colors.black,
-																					fontWeight: FontWeight.w400
+																					color: Color.fromARGB(255, 145, 1, 1),
+																					fontWeight: FontWeight.w500
 																				),
 																			)
 																		],
@@ -551,6 +554,32 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
+    var errorStatus = 0;
+    if (_acrResult.status.code == 2004) {        
+      //problem with fp generation ACR on Android 
+       print("TRY TO FIX PROBLEM AFTER CALL");          
+       // FlutterForegroundTask.stopService();
+
+       errorStatus = 1;  
+       if (await FlutterForegroundTask.isRunningService) {
+          print ("isRunning restart service");
+          await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+          _session = ACRCloud.startSession();
+          _acrResult = await _session.destroy;
+  
+          if (await FlutterForegroundTask.restartService()){
+            print ("SERVICE RESTARTED");
+            return;
+          }
+        } else {
+          print ("isNOTRunning start service");
+          FlutterForegroundTask.startService(
+          notificationTitle: 'RadioMonitor è di nuovo in esecuzione',
+            notificationText: 'Tocca per tornare all\'applicazione',
+            callback: startCallback,
+          );
+        }
+    }
 		String result = '';
 		print("CUSTOM STREAM");
 		print(_acrResult.status.code);
@@ -594,7 +623,8 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		// 	print('Error: ${e.message}');
 		// }
 		
-		if (result != '') sendResult(result);
+	  if ((result != '')&&(errorStatus == 0)) sendResult(result);
+ 
 		sendPort?.send(_eventCount);
 		_eventCount ++;
 	}
