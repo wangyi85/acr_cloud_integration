@@ -554,41 +554,33 @@ class AudioMonitorTaskHandler extends TaskHandler {
 		await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
 		_session = ACRCloud.startSession();
 		_acrResult = await _session.result;
-    var errorStatus = 0;
-    if (_acrResult.status.code == 2004) {        
-      //problem with fp generation ACR on Android 
-       print("TRY TO FIX PROBLEM AFTER CALL");          
-       // FlutterForegroundTask.stopService();
+		var errorStatus = 0;
+		if (_acrResult.status.code == 2004) {        
+			//problem with fp generation ACR on Android 
+			print("TRY TO FIX PROBLEM AFTER CALL");          
+			// FlutterForegroundTask.stopService();
 
-       errorStatus = 1;  
-       if (await FlutterForegroundTask.isRunningService) {
-          print ("isRunning restart service");
-          await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
-          _session = ACRCloud.startSession();
-          _acrResult = await _session.destroy;
-  
-          if (await FlutterForegroundTask.restartService()){
-            print ("SERVICE RESTARTED");
-            return;
-          }
-        } else {
-          print ("isNOTRunning start service");
-          FlutterForegroundTask.startService(
-          notificationTitle: 'RadioMonitor è di nuovo in esecuzione',
-            notificationText: 'Tocca per tornare all\'applicazione',
-            callback: startCallback,
-          );
-        }
-    }
-		String result = '';
-		print("CUSTOM STREAM");
-		print(_acrResult.status.code);
-		if (_acrResult.status.code == 2004) {
-			// Problem with fp generation ACR on Android
-			print('TRY TO FIX');
-			FlutterForegroundTask.stopService();
-			FlutterForegroundTask.restartService();
+			errorStatus = 1;  
+			if (await FlutterForegroundTask.isRunningService) {
+				print ("isRunning restart service");
+				await ACRCloud.setUp(const ACRCloudConfig(accessKey, accessSecret, host));
+				_session = ACRCloud.startSession();
+				_acrResult = await _session.destroy;
+		
+				if (await FlutterForegroundTask.restartService()){
+					print ("SERVICE RESTARTED");
+					return;
+				}
+			} else {
+				print ("isNOTRunning start service");
+				FlutterForegroundTask.startService(
+					notificationTitle: 'RadioMonitor è di nuovo in esecuzione',
+					notificationText: 'Tocca per tornare all\'applicazione',
+					callback: startCallback,
+				);
+			}
 		}
+		String result = '';
 		if (_eventCount % 5 == 0) {
 			print('get location');
 			final location = await _getCurrentPosition();
