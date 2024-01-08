@@ -12,6 +12,7 @@ import 'package:audio_monitor/widgets/bottombar.dart';
 import 'package:audio_monitor/widgets/stop_rec_back_btn.dart';
 import 'package:audio_monitor/widgets/stop_rec_btn.dart';
 import 'package:audio_monitor/widgets/toaster_message.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_monitor/utils/consts.dart';
 import 'package:flutter_acrcloud/flutter_acrcloud.dart';
@@ -662,7 +663,24 @@ class AudioMonitorTaskHandler extends TaskHandler {
 	}
 
 	Future<void> sendResult(result) async {
+		ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
+		if (connectivityResult == ConnectivityResult.none) {
+			print('network is disabled');
+			return;
+		}
+		
+		// Compare timestamp with previous one
+		var prefs = await SharedPreferences.getInstance();
+		var recorded_at = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+		if (recorded_at.toString() == prefs.getString('PrevRecordedAt')) {
+			print('Same timestamp with previous one');
+			return;
+		}
+
 		try {
+			// Save timestamp to shared preference for preventing sending same data.
+			prefs.setString('PrevRecordedAt', recorded_at.toString());
+
 			var response = (await http.post(Uri.parse('$serverBaseUrl/registerACRResult'), 
 				headers: <String, String>{
 					'Content-Type': 'application/json; charset=UTF-8'
